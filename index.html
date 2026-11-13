@@ -63,7 +63,8 @@ window.MCB_openEmbeddedVideoPiP=async function(host, onOpened, onClosed){
  return pip;
 };
 window.addEventListener('message',event=>{
-  if(event.source!==$('stage').querySelector('iframe')?.contentWindow)return;
+  if(event.origin!==window.location.origin && event.origin!=='null')return;
+  if(!event.data || typeof event.data.type!=='string')return;
   if(event.data?.type==='MCB_V563_CLOSE'){
     closeViewer();
     return;
@@ -73,5 +74,6 @@ window.addEventListener('message',event=>{
     closeViewer();
   }
 });
+window.MCB_returnToTopic=()=>{closeViewer();render();};
 function closeViewer(){let stage=$('stage');stage.querySelectorAll('video,audio').forEach(e=>e.pause());stage.replaceChildren();$('viewer').classList.add('hidden');$('viewer').classList.remove('mcb-custom-video');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}$('closeViewer').onclick=closeViewer;$('float').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});$('viewer').classList.add('float')};$('full').onclick=()=>{$('viewer').classList.remove('float');$('viewer').requestFullscreen?.().catch(()=>{})};render();
 </script></body></html>
