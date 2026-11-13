@@ -415,6 +415,19 @@ html body .pip-audio-player .speed-menu[hidden]{display:none!important}
 /* V56.5.26: ensure the detached MP3 speed menu is visible above its controls. */
 .speed-menu.mcb-speed-open{display:grid!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
 .speed-menu.mcb-speed-open[hidden]{display:none!important}
+
+/* V56.5.33: native MP3 speed picker remains usable in original, mini and PiP views. */
+.media-tools .mcb-speed-unit #speedButton.mcb-native-speed,
+.mini-media-player .media-tools .mcb-speed-unit #speedButton.mcb-native-speed,
+.pip-audio-player .media-tools .mcb-speed-unit #speedButton.mcb-native-speed{
+ appearance:auto!important;-webkit-appearance:menulist!important;
+ font-size:15px!important;line-height:normal!important;color:#18375d!important;
+ text-align:center!important;cursor:pointer!important;padding:2px!important;
+ background:#d8ebff!important;border:2px solid #458ee2!important;
+ pointer-events:auto!important;opacity:1!important;
+}
+.media-tools .mcb-speed-unit #speedButton.mcb-native-speed::before,
+.media-tools .mcb-speed-unit #speedButton.mcb-native-speed::after{content:none!important}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
@@ -865,50 +878,24 @@ function addMediaControls(media,r,host,file){
  if(![.25,.5,.65,.75,.85,1,1.25,1.5,2].includes(speed))speed=1;
  const speeds=[.25,.5,.65,.75,.85,1,1.25,1.5,2];
  const speedButton=q('speedButton'),speedMenu=q('speedMenu');
- function showSpeed(){speedButton.textContent='Speed: '+speed+'× ▾';speedButton.dataset.speed=speed+'× ▼';speedMenu.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.speed)===speed)))}
+ // V56.5.33: Use a native select for speed. Custom popovers were clipped or
+ // intercepted in the embedded/mini/PiP player documents. Native menus are
+ // browser-managed and work in all three window contexts.
+ const speedSelect=document.createElement('select');
+ speedSelect.id='speedButton';speedSelect.className='secondary mcb-native-speed';
+ speedSelect.setAttribute('aria-label','Playback speed');
+ speedSelect.title='Playback speed';
  for(const value of speeds){
-  const option=document.createElement('button');option.type='button';option.className='secondary';option.dataset.speed=value;option.textContent=value+'×';
-  option.onclick=()=>{speed=value;media.playbackRate=speed;setPitchCorrection(true);showSpeed();closeSpeedMenu();save()};
-  speedMenu.append(option);
+  const option=document.createElement('option');option.value=String(value);
+  option.textContent=value+'×';speedSelect.append(option);
  }
- // Put the menu outside the clipped, horizontally scrolling mini toolbar.
- // The floating menu is placed in the same document as the player (also works in PiP).
- // Keep the speed menu in the player's current document, including detached PiP.
- function closeSpeedMenu(){
-  speedMenu.hidden=true;speedMenu.classList.remove('mcb-speed-open');
-  speedButton.setAttribute('aria-expanded','false');
-  if(speedButton.parentNode && speedMenu.parentNode!==speedButton.parentNode)speedButton.parentNode.append(speedMenu);
- }
- function positionSpeedMenu(){
-  const rect=speedButton.getBoundingClientRect();
-  const win=speedButton.ownerDocument.defaultView||window;
-  const width=Math.max(120,Math.min(250,win.innerWidth-16));
-  speedMenu.style.setProperty('position','fixed','important');
-  speedMenu.style.setProperty('transform','none','important');
-  speedMenu.style.setProperty('right','auto','important');
-  speedMenu.style.setProperty('bottom','auto','important');
-  speedMenu.style.setProperty('z-index','2147483647','important');
-  speedMenu.style.setProperty('width',width+'px','important');
-  speedMenu.style.setProperty('left',Math.max(8,Math.min(win.innerWidth-width-8,rect.left))+'px','important');
-  const h=speedMenu.getBoundingClientRect().height;
-  speedMenu.style.setProperty('top',(rect.top>=h+8?rect.top-h-5:Math.max(8,Math.min(win.innerHeight-h-8,rect.bottom+5)))+'px','important');
- }
- speedButton.addEventListener('click',e=>{
-  e.stopPropagation();
-  if(!speedMenu.hidden){closeSpeedMenu();return}
-  const d=speedButton.ownerDocument;
-  (d.fullscreenElement||d.body).append(speedMenu);
-  speedMenu.hidden=false;speedMenu.classList.add('mcb-speed-open');
-  positionSpeedMenu();speedButton.setAttribute('aria-expanded','true');
-  if(!d.__mcbSpeedDismiss){d.addEventListener('pointerdown',ev=>{
-   const open=d.querySelector('.speed-menu.mcb-speed-open');
-   if(open&&!open.contains(ev.target)&&!ev.target.closest?.('#speedButton')){
-    const btn=d.getElementById('speedButton');
-    if(btn){open.hidden=true;open.classList.remove('mcb-speed-open');btn.setAttribute('aria-expanded','false');btn.parentNode.append(open)}
-   }
-  });d.__mcbSpeedDismiss=true}
+ speedButton.replaceWith(speedSelect);
+ speedMenu.remove();
+ function showSpeed(){speedSelect.value=String(speed);speedSelect.dataset.speed=speed+'×';}
+ speedSelect.addEventListener('change',()=>{
+  speed=Number(speedSelect.value)||1;
+  media.playbackRate=speed;setPitchCorrection(true);showSpeed();save();
  });
- speedMenu.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSpeedMenu();speedButton.focus()}});
  showSpeed();
  function setPitchCorrection(on){for(const key of ['preservesPitch','mozPreservesPitch','webkitPreservesPitch']){if(key in media)try{media[key]=on}catch(e){}}}
  setPitchCorrection(true);
