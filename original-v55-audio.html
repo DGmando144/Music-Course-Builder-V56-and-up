@@ -428,6 +428,32 @@ html body .pip-audio-player .speed-menu[hidden]{display:none!important}
 }
 .media-tools .mcb-speed-unit #speedButton.mcb-native-speed::before,
 .media-tools .mcb-speed-unit #speedButton.mcb-native-speed::after{content:none!important}
+/* V56.5.34: the original MCB player inherited legacy button-only styling
+   (display:flex, font-size:0, and generated pseudo-elements) on the new
+   native SELECT. Restore real select rendering in the embedded fullscreen view.
+   Floating player styling and all playback logic are left intact. */
+html body:not(.pip-audio-player) .media-tools .mcb-speed-unit select#speedButton.mcb-native-speed {
+  display:block!important;
+  appearance:menulist!important;
+  -webkit-appearance:menulist!important;
+  font-size:18px!important;
+  line-height:normal!important;
+  font-weight:700!important;
+  text-align:center!important;
+  color:#18375d!important;
+  width:122px!important;
+  min-width:122px!important;
+  height:68px!important;
+  padding:8px 5px!important;
+  overflow:visible!important;
+  pointer-events:auto!important;
+  cursor:pointer!important;
+}
+html body:not(.pip-audio-player) .media-tools .mcb-speed-unit select#speedButton.mcb-native-speed option {
+  font-size:18px!important;
+  color:#18375d!important;
+  background:white!important;
+}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
