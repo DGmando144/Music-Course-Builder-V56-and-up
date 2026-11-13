@@ -13,7 +13,7 @@
 .pdf-workspace nav{background:#173c68;color:white;display:flex;gap:12px;align-items:center;padding:10px 16px}
 .pdf-workspace nav strong{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pdf-workspace embed{width:100%;flex:1;min-height:0;border:0}
-</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.4 Float Workspace Test</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
+</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.6 Toolbar + True Float Test</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
 <input id="filePicker" type="file" multiple hidden accept="audio/*,video/*,.pdf,.mp3,.wav,.m4a,.ogg,.flac,.mp4,.webm,.mov"><input id="jsonPicker" type="file" hidden accept=".json,application/json">
 <dialog id="editor"><form method="dialog"><h3 id="editTitle"></h3><label id="nameLabel">Name</label><input id="editName" required><menu><button value="cancel">Cancel</button><button class="primary" id="editOk" value="ok">Save</button></menu></form></dialog>
 <dialog id="destination"><form method="dialog"><h3>Where should these files go?</h3><label>Subject</label><select id="destSubject"></select><label>Topic</label><select id="destTopic"></select><menu><button value="cancel">Cancel</button><button class="primary" value="ok">Add Files</button></menu></form></dialog>
@@ -99,5 +99,20 @@ window.addEventListener('message',event=>{
 });
 window.MCB_returnToTopic=()=>{closeViewer();render();};
 $('pdfClose').onclick=()=>{$('pdfWorkspace').classList.add('hidden');$('pdfDocument').removeAttribute('src')};
-function closeViewer(){$('viewer').classList.remove('mcb-pip-active');let stage=$('stage');stage.querySelectorAll('video,audio').forEach(e=>e.pause());stage.replaceChildren();$('viewer').classList.add('hidden');$('viewer').classList.remove('mcb-custom-video');$('viewer').classList.remove('mcb-youtube-view');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}$('closeViewer').onclick=closeViewer;$('float').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});$('viewer').classList.add('float')};$('full').onclick=()=>{$('viewer').classList.remove('float');$('viewer').requestFullscreen?.().catch(()=>{})};render();
+function closeViewer(){$('viewer').classList.remove('mcb-pip-active');let stage=$('stage');stage.querySelectorAll('video,audio').forEach(e=>e.pause());stage.replaceChildren();$('viewer').classList.add('hidden');$('viewer').classList.remove('mcb-custom-video');$('viewer').classList.remove('mcb-youtube-view');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}$('closeViewer').onclick=closeViewer;$('float').onclick=async()=>{
+ if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
+ if(!window.documentPictureInPicture){alert('True always-on-top Float requires a compatible desktop Chrome or Edge browser.');return;}
+ const stage=$('stage'),frame=stage.querySelector('iframe');
+ if(!frame){alert('For MP3/MP4 use Float Player in the media player toolbar.');return;}
+ if(document.pictureInPictureElement){alert('Close the existing floating window first.');return;}
+ try{
+  const pip=await window.documentPictureInPicture.requestWindow({width:850,height:620});
+  const anchor=document.createComment('MCB float restore');frame.before(anchor);
+  pip.document.body.style.cssText='margin:0;background:#111827;width:100%;height:100vh;overflow:hidden';
+  frame.style.cssText='display:block;width:100%;height:100%;border:0';
+  pip.document.body.append(frame);
+  $('viewer').classList.add('hidden');
+  pip.addEventListener('pagehide',()=>{if(anchor.parentNode)anchor.replaceWith(frame);frame.style.cssText='';$('viewer').classList.remove('hidden');},{once:true});
+ }catch(e){alert('True Float unavailable: '+e.message)}
+};$('full').onclick=()=>{const frame=$('stage').querySelector('iframe');if(frame && $('viewer').classList.contains('mcb-youtube-view')){try{frame.contentWindow.document.getElementById('fullscreenBtn')?.click()}catch(e){frame.requestFullscreen?.().catch(()=>{})}return;} $('viewer').classList.remove('float');$('viewer').requestFullscreen?.().catch(()=>{})};render();
 </script></body></html>
