@@ -247,7 +247,25 @@ html:fullscreen,html:fullscreen body.mcb-monitor-window{height:100%;overflow:hid
  const exit=document.createElement('button');exit.textContent='Exit Full Screen';
  const back=document.createElement('button');back.textContent='Close Player';
  bar.append(info,room,pin,full,exit,back);document.body.prepend(bar);
- room.onclick=()=>{try{window.opener?.postMessage({type:'MCB_SHOW_PRACTICE_ROOM'},location.origin);window.opener?.focus()}catch(e){alert('Please select the Course Builder tab to open another file.')}};
+ // A browser may ignore opener.focus(). Give the user visible feedback and
+ // target the named original tab directly, without reloading its Topic state.
+ const roomHint=document.createElement('span');
+ roomHint.id='mcbRoomHint';roomHint.style.cssText='font:12px system-ui;color:#f9d58b;max-width:280px';
+ room.after(roomHint);
+ room.onclick=()=>{
+  roomHint.textContent='Switching to Practice Room…';
+  try{window.opener?.postMessage({type:'MCB_SHOW_PRACTICE_ROOM'},location.origin)}catch(e){}
+  try{
+   const target=window.open('','MCB_Practice_Room');
+   if(target&&!target.closed){target.focus();roomHint.textContent='Practice Room selected. If Chrome keeps this window in front, select the Course Builder tab.';return;}
+  }catch(e){}
+  try{if(window.opener&&!window.opener.closed){window.opener.focus();roomHint.textContent='Select the Course Builder tab if it did not come forward.';return;}}catch(e){}
+  roomHint.textContent='Practice Room tab unavailable. Click Open Practice Room.';
+  const fallback=document.getElementById('mcbOpenRoomFallback')||document.createElement('button');
+  fallback.id='mcbOpenRoomFallback';fallback.textContent='Open Practice Room';
+  fallback.onclick=()=>window.open(new URL('index.html',location.href).href,'MCB_Practice_Room');
+  if(!fallback.isConnected)roomHint.after(fallback);
+ };
  pin.onclick=async()=>{
   if(!window.documentPictureInPicture){alert('Always-on-top Pin Player is unavailable in this browser. Use the Chrome window instead.');return;}
   try{

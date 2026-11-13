@@ -13,7 +13,7 @@
 .pdf-workspace nav{background:#173c68;color:white;display:flex;gap:12px;align-items:center;padding:10px 16px}
 .pdf-workspace nav strong{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pdf-workspace embed{width:100%;flex:1;min-height:0;border:0}
-</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.10 YouTube Loop State and Controls Test</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
+</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.14 Practice Room and Player Replacement</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
 <input id="filePicker" type="file" multiple hidden accept="audio/*,video/*,.pdf,.mp3,.wav,.m4a,.ogg,.flac,.mp4,.webm,.mov"><input id="jsonPicker" type="file" hidden accept=".json,application/json">
 <dialog id="editor"><form method="dialog"><h3 id="editTitle"></h3><label id="nameLabel">Name</label><input id="editName" required><menu><button value="cancel">Cancel</button><button class="primary" id="editOk" value="ok">Save</button></menu></form></dialog>
 <dialog id="destination"><form method="dialog"><h3>Where should these files go?</h3><label>Subject</label><select id="destSubject"></select><label>Topic</label><select id="destTopic"></select><menu><button value="cancel">Cancel</button><button class="primary" value="ok">Add Files</button></menu></form></dialog>
@@ -26,7 +26,15 @@ function render(){let level=topicId?'media':subjectId?'topics':'subjects';$('hea
 function editName(title,value,cb){$('editTitle').textContent=title;$('editName').value=value;$('editor').showModal();$('editName').focus();$('editor').onclose=()=>{if($('editor').returnValue==='ok'&&$('editName').value.trim())cb($('editName').value.trim())}}$('create').onclick=()=>{if(!subjectId)editName('New Subject','',n=>{data.subjects.push({id:uid(),name:n,topics:[]});persist();render()});else if(!topicId)editName('New Topic','',n=>{subject().topics.push({id:uid(),name:n,media:[]});persist();render()})};$('back').onclick=()=>{if(topicId)topicId=null;else subjectId=null;render()};function kind(n){return /\.pdf$/i.test(n)?'pdf':/\.(mp4|webm|mov|m4v)$/i.test(n)?'video':'audio'}function addFiles(files,sid,tid){if(!files.length)return;let s=data.subjects.find(s=>s.id===sid),t=s?.topics.find(t=>t.id===tid);if(!t){pendingFiles=files;$('destSubject').replaceChildren();data.subjects.forEach(x=>$('destSubject').add(new Option(x.name,x.id)));$('destSubject').value=subjectId||data.subjects[0]?.id||'';updateDestTopics();$('destination').showModal();return}files.forEach(f=>{let id=uid();urls.set(id,URL.createObjectURL(f));audioFiles.set(id,f);t.media.push({id,name:f.name,kind:kind(f.name),local:true})});persist();render()}function updateDestTopics(){$('destTopic').replaceChildren();let s=data.subjects.find(x=>x.id===$('destSubject').value);s?.topics.forEach(t=>$('destTopic').add(new Option(t.name,t.id)))}$('destSubject').onchange=updateDestTopics;$('destination').onclose=()=>{if($('destination').returnValue==='ok')addFiles(pendingFiles,$('destSubject').value,$('destTopic').value);pendingFiles=[]};const onPicked=()=>addFiles([...$('filePicker').files],subjectId,topicId);$('filePicker').onchange=onPicked;$('addFile').onclick=()=>$('filePicker').click();const drop=$('drop');drop.ondragover=e=>{e.preventDefault();drop.classList.add('drag')};drop.ondragleave=()=>drop.classList.remove('drag');drop.ondrop=e=>{e.preventDefault();drop.classList.remove('drag');addFiles([...e.dataTransfer.files],subjectId,topicId)};
 function ytId(s){try{let u=new URL(s);if(u.hostname.includes('youtu.be'))return u.pathname.split('/')[1];if(u.hostname.includes('youtube.com'))return u.searchParams.get('v')||u.pathname.split('/').filter(Boolean).pop()}catch(e){}return null}async function ytTitle(url){try{let r=await fetch('https://www.youtube.com/oembed?url='+encodeURIComponent(url)+'&format=json');if(r.ok)return (await r.json()).title}catch(e){}return 'YouTube video'}$('addYoutube').onclick=()=>{$('youtubeUrl').value='';$('youtube').showModal()};$('youtube').onclose=async()=>{if($('youtube').returnValue!=='ok')return;let url=$('youtubeUrl').value.trim(),videoId=ytId(url);if(!videoId){alert('Please enter a valid YouTube video URL');return}let t=topic();let m={id:uid(),kind:'youtube',name:'Loading YouTube title…',url,videoId};t.media.push(m);persist();render();m.name=await ytTitle(url);persist();render()};
 $('save').onclick=()=>{let blob=new Blob([JSON.stringify({version:'56.0',...data},null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='MCB_Subjects_Topics.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000)};$('load').onclick=()=>$('jsonPicker').click();$('jsonPicker').onchange=async()=>{try{let d=JSON.parse(await $('jsonPicker').files[0].text());if(!Array.isArray(d.subjects))throw Error('Not a V56 project');data={subjects:d.subjects};subjectId=topicId=null;persist();render()}catch(e){alert('Could not load: '+e.message)}};
+function mcbClosePDF(){
+ $('pdfWorkspace').classList.add('hidden');
+ $('pdfDocument').removeAttribute('src');
+}
 function openMedia(m){
+ // Every new Practice Room resource replaces the previous one; the separate
+ // Chrome Float window is deliberately untouched.
+ mcbClosePDF();
+ if(!$('viewer').classList.contains('mcb-pip-active'))closeViewer();
  if(m.kind==='pdf' && $('viewer').classList.contains('mcb-pip-active')){
   const src=urls.get(m.id);
   if(!src){alert('Please Relink this PDF first.');return;}
@@ -98,8 +106,8 @@ window.addEventListener('message',event=>{
   }
 });
 window.MCB_returnToTopic=()=>{closeViewer();render();};
-$('pdfClose').onclick=()=>{$('pdfWorkspace').classList.add('hidden');$('pdfDocument').removeAttribute('src')};
-function closeViewer(){$('viewer').classList.remove('mcb-pip-active');let stage=$('stage');stage.querySelectorAll('video,audio').forEach(e=>e.pause());stage.replaceChildren();$('viewer').classList.add('hidden');$('viewer').classList.remove('mcb-custom-video');$('viewer').classList.remove('mcb-youtube-view');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}$('closeViewer').onclick=closeViewer;// Snapshot the YouTube practice state before changing iframe document ownership.
+$('pdfClose').onclick=mcbClosePDF;
+function closeViewer(){mcbClosePDF();$('viewer').classList.remove('mcb-pip-active');let stage=$('stage');stage.querySelectorAll('video,audio').forEach(e=>e.pause());stage.replaceChildren();$('viewer').classList.add('hidden');$('viewer').classList.remove('mcb-custom-video');$('viewer').classList.remove('mcb-youtube-view');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}$('closeViewer').onclick=closeViewer;// Snapshot the YouTube practice state before changing iframe document ownership.
 const mcbYouTubeSnapshots=new WeakMap();
 function mcbCaptureYouTube(frame){
  try{const state=frame?.contentWindow?.MCB_exportYouTubeState?.();if(state)mcbYouTubeSnapshots.set(frame,state)}catch(e){}
@@ -108,7 +116,16 @@ function mcbRestoreYouTube(frame){
  const state=mcbYouTubeSnapshots.get(frame);if(!state)return;
  try{frame.contentWindow?.MCB_importYouTubeState?.(state)}catch(e){}
 }
-window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='MCB_SHOW_PRACTICE_ROOM'){$('viewer').classList.add('hidden');window.focus();return;}});
+// Give the original Course Builder tab a stable window target. A popup can
+// activate it with window.open('', name) even when opener.focus() is ignored.
+if(!window.name)window.name='MCB_Practice_Room';
+function mcbShowPracticeRoom(){
+ if(!$('viewer').classList.contains('mcb-pip-active'))closeViewer();
+ render();
+ try{window.focus()}catch(e){}
+}
+window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='MCB_SHOW_PRACTICE_ROOM')mcbShowPracticeRoom();});
+
 window.addEventListener('message',e=>{if(e.origin!==location.origin||e.data?.type!=='MCB_MONITOR_RETURN')return;const f=document.querySelector('.mcb-youtube-view iframe')||window.documentPictureInPicture?.window?.document?.querySelector('iframe');if(f&&e.data.state){try{f.contentWindow?.MCB_importYouTubeState?.(e.data.state)}catch(err){}}});
 $('float').onclick=()=>{
  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
