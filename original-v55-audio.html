@@ -377,7 +377,12 @@ html body .media-topbar{display:none!important}
 html body .pip-audio-player .media-topbar,
 html body .pip-video-player .media-topbar{display:flex!important}
 
-/* V56.5.23: single compact blue window-action strip inside detached mini players. */
+/* V56.5.24: detached minis expose blue Fullscreen and Close, no Dock. */
+.pip-audio-player .media-topbar .mcb-float-toggle,
+.pip-video-player .media-topbar .mcb-float-toggle{display:none!important}
+.pip-video-player .media-fullscreen-btn{display:inline-flex!important}
+.pip-video-player .mcb-float-audio-close{display:inline-flex!important}
+
 .pip-audio-player .media-topbar,.pip-video-player .media-topbar{gap:4px!important;align-items:center!important;padding:3px 4px!important;cursor:default!important}
 .pip-audio-player .media-topbar strong,.pip-video-player .media-topbar strong{flex:1 1 100%!important;min-width:0!important;font-size:12px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pip-audio-player .media-topbar .mcb-mini-action,.pip-video-player .media-topbar .mcb-mini-action{
@@ -393,7 +398,11 @@ html body .pip-video-player .media-topbar{display:flex!important}
 .pip-audio-player .media-video-region.audio-region,.pip-audio-player .media-splitter{display:none!important}
 .pip-audio-player .media-tools{margin-top:0!important;padding:3px!important}
 .pip-audio-player .wave-wrap{display:none!important}
-.pip-video-player .media-topbar .mcb-mini-action{font-size:11px!important}
+ .pip-video-player .media-topbar .mcb-mini-action{font-size:11px!important}
+.pip-video-player .media-topbar .media-fullscreen-btn,
+.pip-video-player .media-topbar .mcb-float-audio-close,
+.pip-audio-player .media-topbar .media-fullscreen-btn,
+.pip-audio-player .media-topbar .mcb-float-audio-close{display:inline-flex!important}
 </style>
 </head>
 <body>
@@ -1160,8 +1169,8 @@ async function floatVideoInWindow(host,floatButton){
     host.classList.add('pip-video-player');
     host.querySelector('.wave-wrap')?.setAttribute('aria-hidden','true');
     host.style.cssText='';
-    floatButton.textContent='Dock Player';
-    const full=host.querySelector('.media-fullscreen-btn');if(full)full.hidden=true;
+    floatButton.textContent='Float Player';
+    const full=host.querySelector('.media-fullscreen-btn');if(full)full.hidden=false;
    },()=>{
     host.classList.remove('pip-video-player');
     host.querySelector('.wave-wrap')?.removeAttribute('aria-hidden');
@@ -1267,7 +1276,7 @@ function makeMediaViewer(file,r,host){
  const bar=document.createElement('div');bar.className='media-topbar';
  const title=document.createElement('strong');title.textContent=mediaDisplayName(r.name);
  const isVideo=r.kind==='video';
- const float=document.createElement('button');float.className='secondary mcb-mini-action';float.textContent='Float Player';
+ const float=document.createElement('button');float.className='secondary mcb-mini-action mcb-float-toggle';float.textContent='Float Player';
  float.title=isVideo?'Open a separate movable video window (640 × 400); resize via window edges':'Open compact MP3 controls in a separate window over the Class';
  float.onclick=async()=>{
   if(isVideo){
@@ -1283,7 +1292,7 @@ function makeMediaViewer(file,r,host){
      playerPipWindow=pip;pipPlayerRestore=restore;
      host.classList.add('floating-player','mini-media-player','pip-audio-player');
      host.classList.remove('player-expanded','video-practice-view');
-     host.style.cssText='';float.textContent='Dock Player';
+     host.style.cssText='';float.textContent='Float Player';
     },()=>{
      host.classList.remove('floating-player','mini-media-player','pip-audio-player');
      host.style.cssText='';float.textContent='Float Player';
@@ -1302,16 +1311,27 @@ function makeMediaViewer(file,r,host){
  full.title='True screen fullscreen for video; Escape exits';
  full.onclick=()=>{
   if(playerPipWindow&&host.ownerDocument===playerPipWindow.document){
+   if(isVideo){enterTrueVideoFullscreen(host,full);return;}
+   // Audio: use fullscreen on the mini when permitted, otherwise restore to the Class.
    const d=host.ownerDocument;
-   if(d.fullscreenElement)d.exitFullscreen().catch(()=>{});
-   else host.requestFullscreen?.().catch(e=>alert('Fullscreen unavailable in floating window: '+e.message));
+   if(d.fullscreenElement){d.exitFullscreen().catch(()=>{});return;}
+   host.requestFullscreen?.().catch(async e=>{
+     if(pipPlayerRestore){const restore=pipPlayerRestore;pipPlayerRestore=null;restore();}
+     if(playerPipWindow){try{playerPipWindow.close()}catch(_){}playerPipWindow=null;}
+     if(!host.classList.contains('player-expanded'))togglePlayerFullscreen(host,full);
+   });
    return;
   }
   if(isVideo){if(document.fullscreenElement===host)document.exitFullscreen();else enterTrueVideoFullscreen(host,full);}
   else togglePlayerFullscreen(host,full);
  };
  const switchMedia=document.createElement('button');switchMedia.type='button';switchMedia.className='secondary mcb-mini-action';switchMedia.textContent='Switch Media ↔';switchMedia.title='Bring the other player forward';switchMedia.onclick=()=>{try{if(window.parent!==window&&typeof window.parent.MCB_switchMedia==='function'){window.parent.MCB_switchMedia();return;}}catch(e){}alert('Open a second player in the Practice Room to switch between them.')};
- const close=document.createElement('button');close.className='secondary mcb-float-audio-close mcb-mini-action';close.textContent='Close Player';close.onclick=()=>{if(window.parent!==window){try{if(typeof window.parent.MCB_returnToTopic==='function'){window.parent.MCB_returnToTopic();return;}}catch(e){console.warn('Parent close callback unavailable',e)}window.parent.postMessage({type:'MCB_V563_CLOSE'},'*');return;}if(playerPipWindow)playerPipWindow.close();closeMedia();$('resourcePreviewCard').hidden=true;};
+ const close=document.createElement('button');close.className='secondary mcb-float-audio-close mcb-mini-action';close.textContent='Close Player';close.onclick=()=>{
+  // A detached player must close its PiP window and its own Class media slot.
+  if(playerPipWindow){try{playerPipWindow.close()}catch(e){}playerPipWindow=null;}
+  if(window.parent!==window){try{window.parent.postMessage({type:'MCB_V563_CLOSE'},window.location.origin);return;}catch(e){console.warn('Close message failed',e)}}
+  closeMedia();$('resourcePreviewCard').hidden=true;
+ };
  const second=document.createElement('button');second.type='button';second.className='secondary mcb-mini-action';second.textContent='Open Second Media';
  second.onclick=()=>{try{if(window.parent!==window&&typeof window.parent.MCB_openSecondMedia==='function'){window.parent.MCB_openSecondMedia();return;}}catch(e){}try{window.parent.postMessage({type:'MCB_OPEN_SECOND_MEDIA'},'*')}catch(e){}};
  bar.append(title,switchMedia,second,float,full,close);host.append(bar);enablePlayerDrag(host,bar);
