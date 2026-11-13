@@ -371,6 +371,11 @@ label{display:block;font-weight:650;font-size:13px;margin:0 0 5px}input,select,t
 .floating-player.mini-media-player .media-tools .media-control-strip .mcb-speed-unit #speedButton::before{font-size:9px!important}
 .floating-player.mini-media-player .media-tools .media-control-strip .mcb-speed-unit #speedButton::after{font-size:12px!important}
 
+
+/* Managed player: only the outer MCB toolbar is visible when docked. */
+html body .media-topbar{display:none!important}
+html body .pip-audio-player .media-topbar,
+html body .pip-video-player .media-topbar{display:flex!important}
 </style>
 </head>
 <body>
@@ -1281,6 +1286,16 @@ function makeMediaViewer(file,r,host){
  const switchMedia=document.createElement('button');switchMedia.type='button';switchMedia.className='secondary';switchMedia.textContent='Switch Media ↔';switchMedia.title='Bring the other player forward';switchMedia.onclick=()=>{try{if(window.parent!==window&&typeof window.parent.MCB_switchMedia==='function'){window.parent.MCB_switchMedia();return;}}catch(e){}alert('Open a second player in the Practice Room to switch between them.')};
  const close=document.createElement('button');close.className='secondary mcb-float-audio-close';close.textContent='Close Player';close.onclick=()=>{if(window.parent!==window){try{if(typeof window.parent.MCB_returnToTopic==='function'){window.parent.MCB_returnToTopic();return;}}catch(e){console.warn('Parent close callback unavailable',e)}window.parent.postMessage({type:'MCB_V563_CLOSE'},'*');return;}if(playerPipWindow)playerPipWindow.close();closeMedia();$('resourcePreviewCard').hidden=true;};
  bar.append(title,switchMedia,float,full,close);host.append(bar);enablePlayerDrag(host,bar);
+ // V56.5.22: parent MCB toolbar delegates to these established player actions.
+ // The local bar remains available only inside the detached PiP window.
+ host.dataset.mcbManaged='1';
+ window.MCB_managedPlayerAction=action=>{
+  if(action==='float')return float.click();
+  if(action==='fullscreen')return full.click();
+  if(action==='close')return close.click();
+  if(action==='switch')return switchMedia.click();
+ };
+
  const media=document.createElement(r.kind);media.controls=true;media.preload='metadata';media.src=activeMediaURL;
  media.style.cssText='display:block;width:100%;height:100%;object-fit:contain';
  const videoRegion=document.createElement('div');videoRegion.className='media-video-region';
@@ -1472,7 +1487,7 @@ window.addEventListener('message' ,async function(event){
 
 <script>
 // V56.5.18: expose second-media picker alongside every Switch Media control.
-(()=>{const attach=()=>{for(const btn of document.querySelectorAll('button')){if(!/Switch Media/i.test(btn.textContent||'')||btn.dataset.mcbSecondAdded)continue;btn.dataset.mcbSecondAdded='1';const second=document.createElement('button');second.type='button';second.textContent='Open Second Media';second.className=btn.className;second.onclick=()=>{try{window.parent.MCB_openSecondMedia()}catch(e){window.parent.postMessage({type:'MCB_OPEN_SECOND_MEDIA'},'*')}};btn.after(second)}};new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});attach()})();
+(()=>{const attach=()=>{if(window.parent!==window)return;for(const btn of document.querySelectorAll('button')){if(!/Switch Media/i.test(btn.textContent||'')||btn.dataset.mcbSecondAdded)continue;btn.dataset.mcbSecondAdded='1';const second=document.createElement('button');second.type='button';second.textContent='Open Second Media';second.className=btn.className;second.onclick=()=>{try{window.parent.MCB_openSecondMedia()}catch(e){window.parent.postMessage({type:'MCB_OPEN_SECOND_MEDIA'},'*')}};btn.after(second)}};new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});attach()})();
 </script>
 </body>
 </html>
