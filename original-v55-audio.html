@@ -454,6 +454,14 @@ html body:not(.pip-audio-player) .media-tools .mcb-speed-unit select#speedButton
   color:#18375d!important;
   background:white!important;
 }
+/* V56.5.35: keep the functional native dropdown, restore visible label, rate and native arrow in all MP3 views. */
+.media-tools .mcb-speed-unit .speed-picker{position:relative!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;box-sizing:border-box!important;overflow:visible!important}
+.media-tools .mcb-speed-unit .mcb-native-speed-caption{display:block!important;position:relative!important;z-index:1!important;font-size:11px!important;font-weight:800!important;line-height:13px!important;color:#18375d!important;text-align:center!important;pointer-events:none!important;flex:0 0 auto!important}
+html body .media-tools .mcb-speed-unit select#speedButton.mcb-native-speed{display:block!important;box-sizing:border-box!important;flex:1 1 auto!important;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important;min-height:20px!important;padding:0 2px!important;font-size:14px!important;font-weight:700!important;line-height:normal!important;text-align:center!important;appearance:menulist!important;-webkit-appearance:menulist!important;cursor:pointer!important}
+html body:not(.pip-audio-player) .media-tools .mcb-speed-unit .speed-picker{height:68px!important}
+html body:not(.pip-audio-player) .media-tools .mcb-speed-unit select#speedButton.mcb-native-speed{height:48px!important;min-height:30px!important;font-size:18px!important}
+.floating-player.mini-media-player .media-tools .mcb-speed-unit .mcb-native-speed-caption,.pip-audio-player .media-tools .mcb-speed-unit .mcb-native-speed-caption{font-size:9px!important;line-height:10px!important}
+.floating-player.mini-media-player .media-tools .mcb-speed-unit select#speedButton.mcb-native-speed,.pip-audio-player .media-tools .mcb-speed-unit select#speedButton.mcb-native-speed{font-size:12px!important;min-height:18px!important}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
@@ -911,6 +919,10 @@ function addMediaControls(media,r,host,file){
  speedSelect.id='speedButton';speedSelect.className='secondary mcb-native-speed';
  speedSelect.setAttribute('aria-label','Playback speed');
  speedSelect.title='Playback speed';
+ // V56.5.35: restore visible SPEED caption without replacing the working native select.
+ const speedCaption=document.createElement('span');speedCaption.className='mcb-native-speed-caption';speedCaption.textContent='Speed';
+ speedSelect.setAttribute('aria-labelledby','mcbSpeedCaption');speedCaption.id='mcbSpeedCaption';
+ speedButton.parentNode.insertBefore(speedCaption,speedButton);
  for(const value of speeds){
   const option=document.createElement('option');option.value=String(value);
   option.textContent=value+'×';speedSelect.append(option);
