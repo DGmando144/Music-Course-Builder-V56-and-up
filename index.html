@@ -13,7 +13,7 @@
 .pdf-workspace nav{background:#173c68;color:white;display:flex;gap:12px;align-items:center;padding:10px 16px}
 .pdf-workspace nav strong{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pdf-workspace embed{width:100%;flex:1;min-height:0;border:0}
-</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.6 Toolbar + True Float Test</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
+</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.8 YouTube Float and Layout Test</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
 <input id="filePicker" type="file" multiple hidden accept="audio/*,video/*,.pdf,.mp3,.wav,.m4a,.ogg,.flac,.mp4,.webm,.mov"><input id="jsonPicker" type="file" hidden accept=".json,application/json">
 <dialog id="editor"><form method="dialog"><h3 id="editTitle"></h3><label id="nameLabel">Name</label><input id="editName" required><menu><button value="cancel">Cancel</button><button class="primary" id="editOk" value="ok">Save</button></menu></form></dialog>
 <dialog id="destination"><form method="dialog"><h3>Where should these files go?</h3><label>Subject</label><select id="destSubject"></select><label>Topic</label><select id="destTopic"></select><menu><button value="cancel">Cancel</button><button class="primary" value="ok">Add Files</button></menu></form></dialog>
@@ -120,7 +120,14 @@ function closeViewer(){$('viewer').classList.remove('mcb-pip-active');let stage=
   $('viewer').classList.add('hidden');
   const restore=()=>{if(anchor.parentNode)anchor.replaceWith(frame);frame.style.cssText='';$('viewer').classList.remove('hidden')};
   dock.onclick=()=>pip.close();
-  full.onclick=()=>{pip.close();requestAnimationFrame(()=>{try{frame.contentWindow.document.getElementById('player')?.requestFullscreen?.().catch(()=>{})}catch(e){$('viewer').requestFullscreen?.().catch(()=>{})}})};
+  full.onclick=async()=>{
+   try{
+    if(!pip.document.fullscreenEnabled)throw new Error('Fullscreen is not supported for this floating window by Chrome.');
+    await pip.document.documentElement.requestFullscreen();
+   }catch(e){
+    alert('Chrome may not allow fullscreen in an always-on-top floating window. Move the floating window to your preferred monitor first. Fullscreen in the original tab cannot automatically switch monitors. Details: '+e.message);
+   }
+  };
   pip.addEventListener('pagehide',restore,{once:true});
  }catch(e){alert('True Float unavailable: '+e.message)}
 };$('full').onclick=()=>{const frame=$('stage').querySelector('iframe');if(frame && $('viewer').classList.contains('mcb-youtube-view')){try{frame.contentWindow.document.getElementById('fullscreenBtn')?.click()}catch(e){frame.requestFullscreen?.().catch(()=>{})}return;} $('viewer').classList.remove('float');$('viewer').requestFullscreen?.().catch(()=>{})};render();
