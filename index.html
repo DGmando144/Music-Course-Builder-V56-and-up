@@ -45,9 +45,13 @@
 
 /* V56.5.30: restore native PDF fullscreen; preserve second media */
 .pdf-workspace:fullscreen{inset:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;resize:none!important;border:0!important;border-radius:0!important}
+/* V56.5.31: PDF second media is available in the original viewer only. */
+.pdf-workspace.mcb-floated #pdfSecond{display:none!important}
+/* A native fullscreen PDF must override the floating geometry. */
+.pdf-workspace:fullscreen,.pdf-workspace:-webkit-full-screen{inset:0!important;top:0!important;left:0!important;right:0!important;bottom:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;resize:none!important;transform:none!important}
 /* V56.5.29: restore second media only on PDF; keep other controls unchanged */
 #bringFloat,#pdfSwap,#viewerSecond,#swapViewer{display:none!important}
-</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.30 PDF Fullscreen FIX TEST</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button><button id="bringFloat" class="hidden" title="Switch to the existing floating player">Switch Media ↔</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
+</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.31 PDF Fullscreen & Float Controls TEST</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button><button id="bringFloat" class="hidden" title="Switch to the existing floating player">Switch Media ↔</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
 <input id="filePicker" type="file" multiple hidden accept="audio/*,video/*,.pdf,.mp3,.wav,.m4a,.ogg,.flac,.mp4,.webm,.mov"><input id="jsonPicker" type="file" hidden accept=".json,application/json">
 <dialog id="editor"><form method="dialog"><h3 id="editTitle"></h3><label id="nameLabel">Name</label><input id="editName" required><menu><button value="cancel">Cancel</button><button class="primary" id="editOk" value="ok">Save</button></menu></form></dialog>
 <dialog id="destination"><form method="dialog"><h3>Where should these files go?</h3><label>Subject</label><select id="destSubject"></select><label>Topic</label><select id="destTopic"></select><menu><button value="cancel">Cancel</button><button class="primary" value="ok">Add Files</button></menu></form></dialog>
@@ -288,31 +292,42 @@ window.MCB_returnToTopic=()=>{closeViewer(true);render();};
  ['pointerup','pointercancel'].forEach(type=>bar.addEventListener(type,()=>drag=null));
 })();
 $('pdfClose').onclick=mcbClosePDF;
-$('pdfFloat').onclick=()=>{$('pdfWorkspace').classList.add('mcb-floated');mcbRaise('pdf')};
-// V56.5.30: Request native fullscreen on the PDF workspace itself.
-// The click handler must call requestFullscreen directly to retain user activation.
-$('pdfFull').onclick=async()=>{
+// V56.5.31: Floating PDF has no second-media action. Fullscreen is
+// requested only by the PDF's original MCB toolbar (not the floated PDF).
+$('pdfFloat').onclick=()=>{
+ if(document.fullscreenElement===$('pdfWorkspace')){
+  document.exitFullscreen().catch(err=>console.warn('PDF exit fullscreen failed:',err));
+ }
+ $('pdfWorkspace').classList.add('mcb-floated');
+ mcbRaise('pdf');
+};
+$('pdfFull').onclick=()=>{
  const panel=$('pdfWorkspace');
+ if(panel.classList.contains('mcb-floated'))return;
  if(document.fullscreenElement===panel){
-  try{await document.exitFullscreen()}catch(err){console.warn('PDF exit fullscreen failed:',err)}
+  document.exitFullscreen().catch(err=>console.warn('PDF exit fullscreen failed:',err));
   return;
  }
+ // Do not await any other operation before requestFullscreen: browser user
+ // activation is required, and the original PDF viewer is the target.
  if(document.fullscreenElement){
-  try{await document.exitFullscreen()}catch(err){console.warn('Could not exit other fullscreen:',err)}
+  console.warn('Another element is fullscreen; exit it before expanding the PDF.');
+  return;
  }
- panel.classList.remove('mcb-floated');
  panel.style.removeProperty('left');panel.style.removeProperty('top');
  panel.style.removeProperty('right');panel.style.removeProperty('bottom');
  mcbRaise('pdf');
- try{
-  if(!panel.requestFullscreen)throw new Error('Fullscreen API unavailable');
-  await panel.requestFullscreen();
- }catch(err){
-  console.warn('PDF fullscreen unavailable:',err);
-  alert('PDF browser fullscreen is unavailable here. The PDF is expanded in the application instead.');
+ if(typeof panel.requestFullscreen!=='function'){
+  alert('PDF fullscreen is not supported in this browser.');return;
  }
+ panel.requestFullscreen().catch(err=>{
+  console.warn('PDF fullscreen unavailable:',err);
+  alert('Chrome could not enter PDF fullscreen: '+err.message);
+ });
 };
-document.addEventListener('fullscreenchange',()=>{$('pdfFull').textContent=document.fullscreenElement===$('pdfWorkspace')?'Exit Full Screen':'Full Screen'});
+document.addEventListener('fullscreenchange',()=>{
+ $('pdfFull').textContent=document.fullscreenElement===$('pdfWorkspace')?'Exit Full Screen':'Full Screen';
+});
 window.MCB_switchMedia=()=>{};
 function closeViewer(preservePDF=false){if(!preservePDF)mcbClosePDF();$('viewer').classList.remove('mcb-pip-active');let stage=$('stage');stage.querySelectorAll('video,audio').forEach(e=>e.pause());stage.replaceChildren();$('viewer').classList.add('hidden');$('viewer').classList.remove('mcb-custom-video');$('viewer').classList.remove('mcb-youtube-view');if(document.fullscreenElement===$('viewer'))document.exitFullscreen().catch(()=>{})}$('closeViewer').onclick=()=>{if(mcbEmbeddedAction('close'))return;closeViewer(!$('pdfWorkspace').classList.contains('hidden'));};// Snapshot the YouTube practice state before changing iframe document ownership.
 const mcbYouTubeSnapshots=new WeakMap();
