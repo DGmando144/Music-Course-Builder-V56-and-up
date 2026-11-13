@@ -108,11 +108,20 @@ function closeViewer(){$('viewer').classList.remove('mcb-pip-active');let stage=
  try{
   const pip=await window.documentPictureInPicture.requestWindow({width:850,height:620});
   const anchor=document.createComment('MCB float restore');frame.before(anchor);
-  pip.document.body.style.cssText='margin:0;background:#111827;width:100%;height:100vh;overflow:hidden';
-  frame.style.cssText='display:block;width:100%;height:100%;border:0';
+  pip.document.body.style.cssText='margin:0;background:#111827;width:100%;height:100vh;overflow:hidden;display:flex;flex-direction:column';
+  const controls=pip.document.createElement('nav');
+  controls.style.cssText='height:39px;flex:none;display:flex;align-items:center;justify-content:flex-end;gap:7px;padding:4px 9px;background:#182536;color:#fff;font:600 12px system-ui';
+  const dock=pip.document.createElement('button');dock.textContent='Dock Player';
+  const full=pip.document.createElement('button');full.textContent='Full Screen';
+  for(const btn of [dock,full])btn.style.cssText='cursor:pointer;background:#285c87;color:white;border:1px solid #5484ad;border-radius:5px;padding:5px 10px;font:600 12px system-ui';
+  controls.append(dock,full);pip.document.body.append(controls);
+  frame.style.cssText='display:block;width:100%;flex:1;min-height:0;border:0';
   pip.document.body.append(frame);
   $('viewer').classList.add('hidden');
-  pip.addEventListener('pagehide',()=>{if(anchor.parentNode)anchor.replaceWith(frame);frame.style.cssText='';$('viewer').classList.remove('hidden');},{once:true});
+  const restore=()=>{if(anchor.parentNode)anchor.replaceWith(frame);frame.style.cssText='';$('viewer').classList.remove('hidden')};
+  dock.onclick=()=>pip.close();
+  full.onclick=()=>{pip.close();requestAnimationFrame(()=>{try{frame.contentWindow.document.getElementById('player')?.requestFullscreen?.().catch(()=>{})}catch(e){$('viewer').requestFullscreen?.().catch(()=>{})}})};
+  pip.addEventListener('pagehide',restore,{once:true});
  }catch(e){alert('True Float unavailable: '+e.message)}
 };$('full').onclick=()=>{const frame=$('stage').querySelector('iframe');if(frame && $('viewer').classList.contains('mcb-youtube-view')){try{frame.contentWindow.document.getElementById('fullscreenBtn')?.click()}catch(e){frame.requestFullscreen?.().catch(()=>{})}return;} $('viewer').classList.remove('float');$('viewer').requestFullscreen?.().catch(()=>{})};render();
 </script></body></html>
