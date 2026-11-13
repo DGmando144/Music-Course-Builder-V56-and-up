@@ -13,7 +13,7 @@
 .pdf-workspace nav{background:#173c68;color:white;display:flex;gap:12px;align-items:center;padding:10px 16px}
 .pdf-workspace nav strong{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pdf-workspace embed{width:100%;flex:1;min-height:0;border:0}
-</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.9 YouTube Zoom and Responsive Float Test</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
+</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.10 YouTube Loop State and Controls Test</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
 <input id="filePicker" type="file" multiple hidden accept="audio/*,video/*,.pdf,.mp3,.wav,.m4a,.ogg,.flac,.mp4,.webm,.mov"><input id="jsonPicker" type="file" hidden accept=".json,application/json">
 <dialog id="editor"><form method="dialog"><h3 id="editTitle"></h3><label id="nameLabel">Name</label><input id="editName" required><menu><button value="cancel">Cancel</button><button class="primary" id="editOk" value="ok">Save</button></menu></form></dialog>
 <dialog id="destination"><form method="dialog"><h3>Where should these files go?</h3><label>Subject</label><select id="destSubject"></select><label>Topic</label><select id="destTopic"></select><menu><button value="cancel">Cancel</button><button class="primary" value="ok">Add Files</button></menu></form></dialog>
@@ -99,15 +99,28 @@ window.addEventListener('message',event=>{
 });
 window.MCB_returnToTopic=()=>{closeViewer();render();};
 $('pdfClose').onclick=()=>{$('pdfWorkspace').classList.add('hidden');$('pdfDocument').removeAttribute('src')};
-function closeViewer(){$('viewer').classList.remove('mcb-pip-active');let stage=$('stage');stage.querySelectorAll('video,audio').forEach(e=>e.pause());stage.replaceChildren();$('viewer').classList.add('hidden');$('viewer').classList.remove('mcb-custom-video');$('viewer').classList.remove('mcb-youtube-view');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}$('closeViewer').onclick=closeViewer;$('float').onclick=async()=>{
+function closeViewer(){$('viewer').classList.remove('mcb-pip-active');let stage=$('stage');stage.querySelectorAll('video,audio').forEach(e=>e.pause());stage.replaceChildren();$('viewer').classList.add('hidden');$('viewer').classList.remove('mcb-custom-video');$('viewer').classList.remove('mcb-youtube-view');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}$('closeViewer').onclick=closeViewer;// Snapshot the YouTube practice state before changing iframe document ownership.
+const mcbYouTubeSnapshots=new WeakMap();
+function mcbCaptureYouTube(frame){
+ try{const state=frame?.contentWindow?.MCB_exportYouTubeState?.();if(state)mcbYouTubeSnapshots.set(frame,state)}catch(e){}
+}
+function mcbRestoreYouTube(frame){
+ const state=mcbYouTubeSnapshots.get(frame);if(!state)return;
+ try{frame.contentWindow?.MCB_importYouTubeState?.(state)}catch(e){}
+}
+$('float').onclick=async()=>{
  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
  if(!window.documentPictureInPicture){alert('True always-on-top Float requires a compatible desktop Chrome or Edge browser.');return;}
  const stage=$('stage'),frame=stage.querySelector('iframe');
+ if(frame&&$('viewer').classList.contains('mcb-youtube-view'))mcbCaptureYouTube(frame);
  if(!frame){alert('For MP3/MP4 use Float Player in the media player toolbar.');return;}
  if(document.pictureInPictureElement){alert('Close the existing floating window first.');return;}
  try{
   const pip=await window.documentPictureInPicture.requestWindow({width:850,height:620});
   const anchor=document.createComment('MCB float restore');frame.before(anchor);
+  if($('viewer').classList.contains('mcb-youtube-view')){
+    frame.addEventListener('load',()=>setTimeout(()=>mcbRestoreYouTube(frame),200));
+  }
   pip.document.body.style.cssText='margin:0;background:#111827;width:100%;height:100vh;overflow:hidden;display:flex;flex-direction:column';
   const controls=pip.document.createElement('nav');
   controls.style.cssText='height:39px;flex:none;display:flex;align-items:center;justify-content:flex-end;gap:7px;padding:4px 9px;background:#182536;color:#fff;font:600 12px system-ui';
@@ -117,8 +130,9 @@ function closeViewer(){$('viewer').classList.remove('mcb-pip-active');let stage=
   controls.append(dock,full);pip.document.body.append(controls);
   frame.style.cssText='display:block;width:100%;flex:1;min-height:0;border:0';
   pip.document.body.append(frame);
+  setTimeout(()=>mcbRestoreYouTube(frame),250);
   $('viewer').classList.add('hidden');
-  const restore=()=>{if(anchor.parentNode)anchor.replaceWith(frame);frame.style.cssText='';$('viewer').classList.remove('hidden')};
+  const restore=()=>{mcbCaptureYouTube(frame);if(anchor.parentNode)anchor.replaceWith(frame);frame.style.cssText='';$('viewer').classList.remove('hidden');setTimeout(()=>mcbRestoreYouTube(frame),250)};
   dock.onclick=()=>pip.close();
   full.onclick=async()=>{
    try{
