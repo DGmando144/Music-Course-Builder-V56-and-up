@@ -13,13 +13,25 @@
 .pdf-workspace nav{background:#173c68;color:white;display:flex;gap:12px;align-items:center;padding:10px 16px}
 .pdf-workspace nav strong{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pdf-workspace embed{width:100%;flex:1;min-height:0;border:0}.pdf-workspace:fullscreen{width:100vw;height:100dvh}.pdf-workspace nav{position:relative;z-index:2;flex-shrink:0}.pdf-workspace nav button{white-space:nowrap}
-</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.17 Switch Media</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button><button id="bringFloat" class="hidden" title="Switch to the existing floating player">Switch Media ↔</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
+.viewer:not(.hidden){z-index:40}
+.mcb-media-picker{position:fixed;inset:0;z-index:200;background:#09182b9c;display:flex;align-items:center;justify-content:center;padding:20px}
+.mcb-media-picker.hidden{display:none}
+.mcb-picker-panel{background:white;color:#182b45;border-radius:14px;box-shadow:0 15px 60px #0006;width:min(530px,95vw);max-height:80vh;display:flex;flex-direction:column;overflow:hidden}
+.mcb-picker-panel header{background:#173c68;color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.mcb-picker-panel header button{background:#fff;color:#173c68}
+.mcb-picker-list{overflow:auto;padding:12px;display:grid;gap:8px}
+.mcb-picker-list button{text-align:left;background:#f1f5fa;border:1px solid #cad7e5;border-radius:8px;padding:12px;cursor:pointer;color:#182b45}
+.mcb-picker-list button:hover{background:#dfeaf9}
+.mcb-picker-panel .mcb-picker-topic{padding:10px 16px;color:#44566b;border-bottom:1px solid #dde5ef}
+
+</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.18 Open Second Media</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button><button id="bringFloat" class="hidden" title="Switch to the existing floating player">Switch Media ↔</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
 <input id="filePicker" type="file" multiple hidden accept="audio/*,video/*,.pdf,.mp3,.wav,.m4a,.ogg,.flac,.mp4,.webm,.mov"><input id="jsonPicker" type="file" hidden accept=".json,application/json">
 <dialog id="editor"><form method="dialog"><h3 id="editTitle"></h3><label id="nameLabel">Name</label><input id="editName" required><menu><button value="cancel">Cancel</button><button class="primary" id="editOk" value="ok">Save</button></menu></form></dialog>
 <dialog id="destination"><form method="dialog"><h3>Where should these files go?</h3><label>Subject</label><select id="destSubject"></select><label>Topic</label><select id="destTopic"></select><menu><button value="cancel">Cancel</button><button class="primary" value="ok">Add Files</button></menu></form></dialog>
 <dialog id="youtube"><form method="dialog"><h3>Add YouTube video</h3><label>YouTube URL</label><input id="youtubeUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." required><p class="note">MCB attempts to retrieve the video title; you can rename it later.</p><menu><button value="cancel">Cancel</button><button class="primary" value="ok">Add to Topic</button></menu></form></dialog>
-<section id="pdfWorkspace" class="pdf-workspace hidden"><nav><strong id="pdfTitle">Sheet music</strong><button id="pdfSwap" title="Bring the other player to the foreground">Switch Media ↔</button><button id="pdfFull">Full Screen</button><button id="pdfClose">Close PDF</button></nav><embed id="pdfDocument" type="application/pdf"></section>
-<section id="viewer" class="viewer hidden"><nav><strong id="viewerTitle">Media</strong><span style="flex:1"></span><button id="swapViewer" title="Bring the other player to the foreground">Switch Media ↔</button><button id="float">Float</button><button id="full">Fullscreen</button><button id="closeViewer">Close</button></nav><div id="stage" class="stage"></div></section>
+<section id="pdfWorkspace" class="pdf-workspace hidden"><nav><strong id="pdfTitle">Sheet music</strong><button id="pdfSecond">Open Second Media</button><button id="pdfSwap" title="Bring the other player to the foreground">Switch Media ↔</button><button id="pdfFull">Full Screen</button><button id="pdfClose">Close PDF</button></nav><embed id="pdfDocument" type="application/pdf"></section>
+<section id="viewer" class="viewer hidden"><nav><strong id="viewerTitle">Media</strong><span style="flex:1"></span><button id="viewerSecond">Open Second Media</button><button id="swapViewer" title="Bring the other player to the foreground">Switch Media ↔</button><button id="float">Float</button><button id="full">Fullscreen</button><button id="closeViewer">Close</button></nav><div id="stage" class="stage"></div></section>
+<div id="mcbSecondPicker" class="mcb-media-picker hidden" role="dialog" aria-modal="true" aria-label="Open second media"><div class="mcb-picker-panel"><header><strong>Open Second Media</strong><button id="mcbSecondCancel" type="button">Cancel ✕</button></header><div id="mcbSecondTopic" class="mcb-picker-topic"></div><div id="mcbSecondItems" class="mcb-picker-list"></div></div></div>
 <script>
 const $=id=>document.getElementById(id);const uid=()=>crypto.randomUUID?.()||String(Date.now()+Math.random());let data={subjects:[{id:uid(),name:'Mandolin',topics:[{id:uid(),name:'Fiddle Tunes',media:[]},{id:uid(),name:'Gypsy Jazz Tunes',media:[]},{id:uid(),name:'Technique',media:[]}]},{id:uid(),name:'Jazz Study',topics:[{id:uid(),name:'Jazz Study',media:[]}]},{id:uid(),name:'Songwriting',topics:[{id:uid(),name:'Melody',media:[]},{id:uid(),name:'Andrea Stolpe',media:[]}]}]};let subjectId=null,topicId=null,pendingFiles=[],urls=new Map(),audioFiles=new Map();const subject=()=>data.subjects.find(s=>s.id===subjectId),topic=()=>subject()?.topics.find(t=>t.id===topicId);const esc=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function persist(){try{localStorage.setItem('MCB_V56_0',JSON.stringify(data))}catch(e){console.warn(e)}}try{const saved=JSON.parse(localStorage.getItem('MCB_V56_0'));if(saved?.subjects)data=saved}catch(e){}
 function render(){let level=topicId?'media':subjectId?'topics':'subjects';$('heading').textContent=level==='subjects'?'Subjects':level==='topics'?'Practice Room':'Practice Room';$('crumb').textContent=level==='subjects'?'Choose a Subject':level==='topics'?subject().name:subject().name+' / '+topic().name;$('back').classList.toggle('hidden',level==='subjects');$('create').textContent=level==='subjects'?'+ New Subject':level==='topics'?'+ New Topic':'+ New Folder';$('create').classList.toggle('hidden',level==='media');$('addFile').classList.toggle('hidden',level!=='media');$('addYoutube').classList.toggle('hidden',level!=='media');$('folders').replaceChildren();$('media').replaceChildren();let list=level==='subjects'?data.subjects:level==='topics'?subject().topics:[];list.forEach(item=>{const card=document.createElement('div');card.className='folder';card.innerHTML='<div class="folder-icon">📁</div><strong>'+esc(item.name)+'</strong><div class="muted">'+(level==='subjects'?item.topics.length+' topics':item.media.length+' media items')+'</div><div class="small-actions"><button data-action="rename">Rename</button><button data-action="delete" class="danger">Delete</button></div>';card.onclick=e=>{if(e.target.closest('button')){let action=e.target.dataset.action;if(action==='rename')editName('Rename '+(level==='subjects'?'Subject':'Topic'),item.name,n=>{item.name=n;persist();render()});else if(confirm('Delete '+item.name+' and its contents?')){list.splice(list.indexOf(item),1);persist();render()}return}if(level==='subjects'){subjectId=item.id;topicId=null}else topicId=item.id;render()};if(level==='topics'){card.ondragover=e=>{e.preventDefault();card.classList.add('drag')};card.ondragleave=()=>card.classList.remove('drag');card.ondrop=e=>{e.preventDefault();e.stopPropagation();card.classList.remove('drag');addFiles([...e.dataTransfer.files],subjectId,item.id)}}$('folders').append(card)});if(level==='media'){let select=document.createElement('select');select.setAttribute('aria-label','Topic');subject().topics.forEach(t=>{let o=new Option(t.name,t.id);select.add(o)});select.value=topicId;select.onchange=()=>{topicId=select.value;render()};$('crumb').append('  ');$('crumb').append(select);topic().media.forEach(m=>{let card=document.createElement('div');card.className='media';let thumb=m.kind==='youtube'?'<img alt="YouTube thumbnail" src="https://img.youtube.com/vi/'+encodeURIComponent(m.videoId)+'/hqdefault.jpg">':'<div class="icon">'+(m.kind==='pdf'?'📄':m.kind==='video'?'🎬':'🎵')+'</div>';card.innerHTML=thumb+'<div class="media-title">'+esc(m.name)+'</div><div class="actions"><button data-action="open">Open</button><button data-action="rename">Rename</button><button data-action="relink">Relink</button><button data-action="remove" class="danger">Remove</button></div>';card.onclick=e=>{if(!e.target.closest('button'))openMedia(m)};card.querySelector('[data-action="open"]').onclick=()=>openMedia(m);card.querySelector('[data-action="rename"]').onclick=()=>editName('Rename media',m.name,n=>{m.name=n;persist();render()});card.querySelector('[data-action="relink"]').onclick=()=>{const input=$('filePicker');input.multiple=false;input.onchange=()=>{let f=input.files[0];if(f){urls.set(m.id,URL.createObjectURL(f));audioFiles.set(m.id,f);m.name=f.name;m.kind=kind(f.name);persist();render()}input.multiple=true;input.onchange=onPicked};input.click()};card.querySelector('[data-action="remove"]').onclick=()=>{if(confirm('Remove '+m.name+'?')){topic().media.splice(topic().media.indexOf(m),1);persist();render()}};$('media').append(card)})} $('drop').textContent=level==='subjects'?'Drop files here to select a Subject and Topic':level==='topics'?'Drop files onto a Topic folder, or here to choose a destination':'Drop files here to add them to '+topic().name}
@@ -84,11 +96,55 @@ window.addEventListener('message',e=>{
  if(e.origin!==location.origin)return;
  if(e.data?.type==='MCB_FLOAT_CLOSED'){mcbFloatKnown=false;mcbFloatWindow=null;mcbRefreshFloatButton()}
 });
+// V56.5.18: choose from the current Topic without closing the first resource.
+let mcbSecondMode=false;
+function mcbCloseSecondPicker(){$('mcbSecondPicker').classList.add('hidden')}
+function mcbOpenSecondPicker(){
+ const t=topic();
+ if(!t){alert('Open a Topic in the Practice Room before choosing a second resource.');return}
+ const list=$('mcbSecondItems');list.replaceChildren();
+ $('mcbSecondTopic').textContent='Current Topic: '+subject().name+' / '+t.name;
+ if(!t.media.length){const note=document.createElement('p');note.textContent='No media in this Topic yet. Close this panel and add media to the Topic first.';list.append(note)}
+ t.media.forEach(m=>{
+  const b=document.createElement('button');b.type='button';
+  b.textContent=(m.kind==='pdf'?'📄 ':m.kind==='youtube'?'▶ ':m.kind==='video'?'🎬 ':'🎵 ')+m.name;
+  b.onclick=()=>{mcbCloseSecondPicker();mcbSecondMode=true;try{mcbOpenSecondResource(m)}finally{mcbSecondMode=false}};
+  list.append(b);
+ });
+ $('mcbSecondPicker').classList.remove('hidden');
+}
+function mcbOpenSecondResource(m){
+ // A floated YouTube video is a separate slot; the PDF beneath remains intact.
+ if(m.kind==='youtube'){
+  const state={url:m.url||('https://www.youtube.com/watch?v='+m.videoId)};
+  if(mcbOpenOrReuseFloat(state))return;
+ }
+ // Keep an existing PDF workspace alive underneath the second media overlay.
+ if(!$('pdfWorkspace').classList.contains('hidden')){
+  if(m.kind==='pdf'){
+   const src=urls.get(m.id);if(!src){alert('Please Relink this PDF first.');return}
+   closeViewer(true);
+   $('viewerTitle').textContent=m.name;
+   const embed=document.createElement('embed');embed.type='application/pdf';embed.src=src;
+   embed.style.cssText='width:100%;height:100%;border:0';
+   $('stage').append(embed);$('viewer').classList.remove('hidden','float');return;
+  }
+  openMedia(m);return;
+ }
+ // With an external floating player, normal Practice Room replacement applies.
+ openMedia(m);
+}
+$('mcbSecondCancel').onclick=mcbCloseSecondPicker;
+$('mcbSecondPicker').addEventListener('click',e=>{if(e.target===$('mcbSecondPicker'))mcbCloseSecondPicker()});
+$('pdfSecond').onclick=mcbOpenSecondPicker;
+$('viewerSecond').onclick=mcbOpenSecondPicker;
+window.MCB_openSecondMedia=mcbOpenSecondPicker;
+window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='MCB_OPEN_SECOND_MEDIA')mcbOpenSecondPicker()});
 function openMedia(m){
  // Every new Practice Room resource replaces the previous one; the separate
  // Chrome Float window is deliberately untouched.
- mcbClosePDF();
- if(!$('viewer').classList.contains('mcb-pip-active'))closeViewer();
+ if(!mcbSecondMode)mcbClosePDF();
+ if(!$('viewer').classList.contains('mcb-pip-active'))closeViewer(mcbSecondMode);
  if(m.kind==='youtube'&&mcbFloatIsOpen()){
   const state={url:m.url||('https://www.youtube.com/watch?v='+m.videoId)};
   mcbOpenOrReuseFloat(state);
@@ -169,7 +225,7 @@ $('pdfClose').onclick=mcbClosePDF;
 $('pdfFull').onclick=()=>{if(document.fullscreenElement===$('pdfWorkspace'))document.exitFullscreen();else $('pdfWorkspace').requestFullscreen?.().catch(e=>alert('Fullscreen unavailable: '+e.message))};
 document.addEventListener('fullscreenchange',()=>{$('pdfFull').textContent=document.fullscreenElement===$('pdfWorkspace')?'Exit Full Screen':'Full Screen'});
 window.MCB_switchMedia=()=>{if(mcbFloatIsOpen())mcbSwapToFloat();else {mcbShowPracticeRoom();alert('No second floating YouTube player is open yet.')}};
-function closeViewer(){mcbClosePDF();$('viewer').classList.remove('mcb-pip-active');let stage=$('stage');stage.querySelectorAll('video,audio').forEach(e=>e.pause());stage.replaceChildren();$('viewer').classList.add('hidden');$('viewer').classList.remove('mcb-custom-video');$('viewer').classList.remove('mcb-youtube-view');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}$('closeViewer').onclick=closeViewer;// Snapshot the YouTube practice state before changing iframe document ownership.
+function closeViewer(preservePDF=false){if(!preservePDF)mcbClosePDF();$('viewer').classList.remove('mcb-pip-active');let stage=$('stage');stage.querySelectorAll('video,audio').forEach(e=>e.pause());stage.replaceChildren();$('viewer').classList.add('hidden');$('viewer').classList.remove('mcb-custom-video');$('viewer').classList.remove('mcb-youtube-view');if(document.fullscreenElement)document.exitFullscreen().catch(()=>{})}$('closeViewer').onclick=()=>closeViewer(!$('pdfWorkspace').classList.contains('hidden'));// Snapshot the YouTube practice state before changing iframe document ownership.
 const mcbYouTubeSnapshots=new WeakMap();
 function mcbCaptureYouTube(frame){
  try{const state=frame?.contentWindow?.MCB_exportYouTubeState?.();if(state)mcbYouTubeSnapshots.set(frame,state)}catch(e){}

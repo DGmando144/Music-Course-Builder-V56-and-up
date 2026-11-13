@@ -242,11 +242,12 @@ html:fullscreen,html:fullscreen body.mcb-monitor-window{height:100%;overflow:hid
  const bar=document.createElement('div');bar.id='mcbMonitorToolbar';
  const info=document.createElement('span');info.textContent='MCB Float Player';info.style.marginRight='auto';
  const room=document.createElement('button');room.textContent='Switch Media ↔';room.title='Bring the Practice Room player to the foreground';
+ const second=document.createElement('button');second.textContent='Open Second Media';second.onclick=()=>{try{window.opener?.postMessage({type:'MCB_OPEN_SECOND_MEDIA'},location.origin);window.opener?.focus()}catch(e){}};
  const pin=document.createElement('button');pin.textContent='Pin Player';
  const full=document.createElement('button');full.textContent='Full Screen';
  const exit=document.createElement('button');exit.textContent='Exit Full Screen';
  const back=document.createElement('button');back.textContent='Close Player';
- bar.append(info,room,pin,full,exit,back);document.body.prepend(bar);
+ bar.append(info,room,second,pin,full,exit,back);document.body.prepend(bar);
  // A browser may ignore opener.focus(). Give the user visible feedback and
  // target the named original tab directly, without reloading its Topic state.
  const roomHint=document.createElement('span');

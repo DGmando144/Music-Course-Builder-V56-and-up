@@ -1452,5 +1452,10 @@ window.addEventListener('message' ,async function(event){
  }catch(err){console.error('MCB V56.3 original player bridge',err);window.parent.postMessage({type:'MCB_V563_ERROR',message:err.message},'*');alert('Unable to open original audio player: '+err.message)}
 });
 </script>
+
+<script>
+// V56.5.18: expose second-media picker alongside every Switch Media control.
+(()=>{const attach=()=>{for(const btn of document.querySelectorAll('button')){if(!/Switch Media/i.test(btn.textContent||'')||btn.dataset.mcbSecondAdded)continue;btn.dataset.mcbSecondAdded='1';const second=document.createElement('button');second.type='button';second.textContent='Open Second Media';second.className=btn.className;second.onclick=()=>{try{window.parent.MCB_openSecondMedia()}catch(e){window.parent.postMessage({type:'MCB_OPEN_SECOND_MEDIA'},'*')}};btn.after(second)}};new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});attach()})();
+</script>
 </body>
 </html>
