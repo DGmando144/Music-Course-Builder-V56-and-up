@@ -416,7 +416,7 @@ html body .pip-audio-player .speed-menu[hidden]{display:none!important}
 .speed-menu.mcb-speed-open{display:grid!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
 .speed-menu.mcb-speed-open[hidden]{display:none!important}
 </style>
-</head>
+<style id="mcb-v56527-controls">button.mcb-float-audio-close{display:none!important}.pip-audio-player .mcb-float-toggle,.pip-video-player .mcb-float-toggle{display:none!important}.media-topbar button:not(.mcb-float-toggle):not(.media-fullscreen-btn){display:none!important}</style></head>
 <body>
 <header><h1>Music Course Builder</h1><p>Build a course, organize classes, and plan focused practice — V55.7.12 · YouTube Titles</p></header>
 <main>
@@ -1168,7 +1168,7 @@ function makePdfViewer(file,r,host){
  const download=document.createElement('a');download.textContent='Download PDF';download.href=activePdfURL;download.download=r.name;download.className='secondary';download.style.cssText='padding:8px 12px;border:1px solid #b7c7d9;border-radius:6px;text-decoration:none';
  const close=document.createElement('button');close.type='button';close.textContent='Close PDF';close.className='secondary';close.onclick=closePdf;
  const switchPdf=document.createElement('button');switchPdf.type='button';switchPdf.className='secondary';switchPdf.textContent='Switch Media ↔';switchPdf.onclick=()=>{try{if(window.parent!==window&&typeof window.parent.MCB_switchMedia==='function')return window.parent.MCB_switchMedia()}catch(e){}alert('No other MCB player is available.')};
- bar.append(title,switchPdf,full,download,close);
+ bar.append(title,full,download,close);
  const frame=document.createElement('div');frame.className='pdf-frame';
  const iframe=document.createElement('iframe');iframe.title=r.name;iframe.src=activePdfURL;iframe.setAttribute('allowfullscreen','');
  frame.append(iframe);panel.append(bar,frame);host.append(panel);
@@ -1324,10 +1324,12 @@ function makeMediaViewer(file,r,host){
     await window.parent.MCB_openEmbeddedVideoPiP(host,(pip,restore)=>{
      playerPipWindow=pip;pipPlayerRestore=restore;
      host.classList.add('floating-player','mini-media-player','pip-audio-player');
+     full.textContent='Return to Original';
      host.classList.remove('player-expanded','video-practice-view');
      host.style.cssText='';float.textContent='Float Player';
     },()=>{
      host.classList.remove('floating-player','mini-media-player','pip-audio-player');
+     full.textContent='Fullscreen';
      host.style.cssText='';float.textContent='Float Player';
      playerPipWindow=null;pipPlayerRestore=null;
     },'audio');
@@ -1355,7 +1357,7 @@ function makeMediaViewer(file,r,host){
    host.classList.add('player-expanded');
    if(isVideo)host.classList.add('video-practice-view');
    host.style.cssText='';
-   full.textContent='Exit Full Screen';
+   full.textContent='Fullscreen';
    try{window.parent?.MCB_expandEmbeddedMedia?.()}catch(e){console.warn(e)}
    return;
   }
@@ -1381,7 +1383,7 @@ function makeMediaViewer(file,r,host){
  };
  const second=document.createElement('button');second.type='button';second.className='secondary mcb-mini-action';second.textContent='Open Second Media';
  second.onclick=()=>{try{if(window.parent!==window&&typeof window.parent.MCB_openSecondMedia==='function'){window.parent.MCB_openSecondMedia();return;}}catch(e){}try{window.parent.postMessage({type:'MCB_OPEN_SECOND_MEDIA'},'*')}catch(e){}};
- bar.append(title,switchMedia,second,float,full,close);host.append(bar);enablePlayerDrag(host,bar);
+ bar.append(title,float,full);host.append(bar);enablePlayerDrag(host,bar);
  // V56.5.22: parent MCB toolbar delegates to these established player actions.
  // The local bar remains available only inside the detached PiP window.
  host.dataset.mcbManaged='1';
@@ -1581,9 +1583,6 @@ window.addEventListener('message' ,async function(event){
 });
 </script>
 
-<script>
-// V56.5.18: expose second-media picker alongside every Switch Media control.
-(()=>{const attach=()=>{if(window.parent!==window)return;for(const btn of document.querySelectorAll('button')){if(!/Switch Media/i.test(btn.textContent||'')||btn.dataset.mcbSecondAdded||btn.closest('.media-topbar'))continue;btn.dataset.mcbSecondAdded='1';const second=document.createElement('button');second.type='button';second.textContent='Open Second Media';second.className=btn.className;second.onclick=()=>{try{window.parent.MCB_openSecondMedia()}catch(e){window.parent.postMessage({type:'MCB_OPEN_SECOND_MEDIA'},'*')}};btn.after(second)}};new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});attach()})();
-</script>
+
 </body>
 </html>

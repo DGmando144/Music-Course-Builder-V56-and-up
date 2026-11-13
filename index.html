@@ -42,7 +42,10 @@
 .viewer.mcb-custom-video:not(.hidden):not(.mcb-floated) iframe{height:100%}
 .pdf-workspace.mcb-front{z-index:60!important}
 .viewer.mcb-front{z-index:60!important}
-</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.23 Mini Window Controls TEST</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button><button id="bringFloat" class="hidden" title="Switch to the existing floating player">Switch Media ↔</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
+
+/* V56.5.27: obsolete multi-player and redundant close controls */
+#bringFloat,#pdfSecond,#pdfSwap,#viewerSecond,#swapViewer,#closeViewer,#mcbSecondPicker{display:none!important}
+</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.27 Simplified Media TEST</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button><button id="bringFloat" class="hidden" title="Switch to the existing floating player">Switch Media ↔</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
 <input id="filePicker" type="file" multiple hidden accept="audio/*,video/*,.pdf,.mp3,.wav,.m4a,.ogg,.flac,.mp4,.webm,.mov"><input id="jsonPicker" type="file" hidden accept=".json,application/json">
 <dialog id="editor"><form method="dialog"><h3 id="editTitle"></h3><label id="nameLabel">Name</label><input id="editName" required><menu><button value="cancel">Cancel</button><button class="primary" id="editOk" value="ok">Save</button></menu></form></dialog>
 <dialog id="destination"><form method="dialog"><h3>Where should these files go?</h3><label>Subject</label><select id="destSubject"></select><label>Topic</label><select id="destTopic"></select><menu><button value="cancel">Cancel</button><button class="primary" value="ok">Add Files</button></menu></form></dialog>
@@ -117,9 +120,9 @@ function mcbSwapToFloat(){
  if(pdfOpen||viewerOpen){mcbRaise(pdfOpen?'pdf':'viewer');return}
  alert('Open a second resource to switch between players.');
 }
-$('bringFloat').onclick=mcbSwapToFloat;
-$('pdfSwap').onclick=mcbSwapToFloat;
-$('swapViewer').onclick=mcbSwapToFloat;
+$('bringFloat').onclick=()=>{};
+$('pdfSwap').onclick=()=>{};
+$('swapViewer').onclick=()=>{};
 window.addEventListener('message',e=>{
  if(e.origin!==location.origin)return;
  if(e.data?.type==='MCB_FLOAT_CLOSED'){mcbFloatKnown=false;mcbFloatWindow=null;mcbRefreshFloatButton()}
@@ -164,10 +167,10 @@ function mcbOpenSecondResource(m){
 }
 $('mcbSecondCancel').onclick=mcbCloseSecondPicker;
 $('mcbSecondPicker').addEventListener('click',e=>{if(e.target===$('mcbSecondPicker'))mcbCloseSecondPicker()});
-$('pdfSecond').onclick=mcbOpenSecondPicker;
-$('viewerSecond').onclick=mcbOpenSecondPicker;
-window.MCB_openSecondMedia=mcbOpenSecondPicker;
-window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='MCB_OPEN_SECOND_MEDIA')mcbOpenSecondPicker()});
+$('pdfSecond').onclick=()=>{};
+$('viewerSecond').onclick=()=>{};
+window.MCB_openSecondMedia=()=>{};
+window.addEventListener('message',e=>{if(false)mcbOpenSecondPicker()});
 function openMedia(m){
  // Every new Practice Room resource replaces the previous one; the separate
  // Chrome Float window is deliberately untouched.
@@ -285,7 +288,7 @@ $('pdfClose').onclick=mcbClosePDF;
 $('pdfFloat').onclick=()=>{$('pdfWorkspace').classList.add('mcb-floated');mcbRaise('pdf')};
 $('pdfFull').onclick=()=>{$('pdfWorkspace').classList.remove('mcb-floated');mcbRaise('pdf')};
 document.addEventListener('fullscreenchange',()=>{$('pdfFull').textContent=document.fullscreenElement===$('pdfWorkspace')?'Exit Full Screen':'Full Screen'});
-window.MCB_switchMedia=mcbSwapToFloat;
+window.MCB_switchMedia=()=>{};
 function closeViewer(preservePDF=false){if(!preservePDF)mcbClosePDF();$('viewer').classList.remove('mcb-pip-active');let stage=$('stage');stage.querySelectorAll('video,audio').forEach(e=>e.pause());stage.replaceChildren();$('viewer').classList.add('hidden');$('viewer').classList.remove('mcb-custom-video');$('viewer').classList.remove('mcb-youtube-view');if(document.fullscreenElement===$('viewer'))document.exitFullscreen().catch(()=>{})}$('closeViewer').onclick=()=>{if(mcbEmbeddedAction('close'))return;closeViewer(!$('pdfWorkspace').classList.contains('hidden'));};// Snapshot the YouTube practice state before changing iframe document ownership.
 const mcbYouTubeSnapshots=new WeakMap();
 function mcbCaptureYouTube(frame){
@@ -305,7 +308,18 @@ function mcbShowPracticeRoom(){
 }
 window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='MCB_SHOW_PRACTICE_ROOM')mcbShowPracticeRoom();});
 
-window.addEventListener('message',e=>{if(e.origin!==location.origin||e.data?.type!=='MCB_MONITOR_RETURN')return;const f=document.querySelector('.mcb-youtube-view iframe')||window.documentPictureInPicture?.window?.document?.querySelector('iframe');if(f&&e.data.state){try{f.contentWindow?.MCB_importYouTubeState?.(e.data.state)}catch(err){}}});
+window.addEventListener('message',e=>{
+ if(e.origin!==location.origin||e.data?.type!=='MCB_MONITOR_RETURN')return;
+ const viewer=$('viewer');const frame=viewer.querySelector('.mcb-youtube-view iframe')||viewer.querySelector('iframe[src*="youtube-player"]');
+ if(frame){
+  viewer.classList.remove('hidden','float','mcb-floated');mcbRaise('viewer');
+  if(e.data.state){try{frame.contentWindow?.MCB_importYouTubeState?.(e.data.state)}catch(err){console.warn(err)}}
+ }
+ try{if(mcbFloatIsOpen())mcbFloatWindow.close()}catch(err){}
+ mcbFloatWindow=null;mcbFloatKnown=false;mcbRefreshFloatButton();
+ try{window.focus()}catch(err){}
+});
+
 function mcbEmbeddedAction(action){
  const frame=$('stage').querySelector('iframe');
  if(!frame||!$('viewer').classList.contains('mcb-custom-video'))return false;
@@ -325,5 +339,5 @@ $('float').onclick=()=>{
  try{frame.contentWindow?.MCB_pauseForExternalWindow?.()}catch(e){}
  // Reveal the Practice Room without destroying the floating window.
  $('viewer').classList.add('hidden');
-};$('full').onclick=()=>{if(mcbEmbeddedAction('fullscreen'))return;const frame=$('stage').querySelector('iframe');if(frame && $('viewer').classList.contains('mcb-youtube-view')){try{frame.contentWindow.document.getElementById('fullscreenBtn')?.click()}catch(e){frame.requestFullscreen?.().catch(()=>{})}return;} $('viewer').classList.remove('float','mcb-floated');mcbRaise('viewer')};render();
+};$('full').onclick=()=>{if(mcbEmbeddedAction('fullscreen'))return;const frame=$('stage').querySelector('iframe');if(frame && $('viewer').classList.contains('mcb-youtube-view')){ $('viewer').classList.remove('hidden','float','mcb-floated');mcbRaise('viewer');return;} $('viewer').classList.remove('float','mcb-floated');mcbRaise('viewer')};render();
 </script></body></html>
