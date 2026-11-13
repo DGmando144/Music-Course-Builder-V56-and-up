@@ -4,7 +4,7 @@
 .viewer.mcb-custom-video>nav{display:none}
 .viewer.mcb-custom-video>.stage{height:100dvh;flex:1 1 auto;min-height:0;display:block}
 .viewer.mcb-custom-video iframe{display:block;width:100%;height:100%;max-width:none;max-height:none}
-.viewer.mcb-youtube-view #float,.viewer.mcb-youtube-view #full{display:none}
+.viewer.mcb-youtube-view #float,.viewer.mcb-youtube-view #full{display:inline-block}
 .media{cursor:pointer}
 </style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.4.5 Single Controls</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
 <input id="filePicker" type="file" multiple hidden accept="audio/*,video/*,.pdf,.mp3,.wav,.m4a,.ogg,.flac,.mp4,.webm,.mov"><input id="jsonPicker" type="file" hidden accept=".json,application/json">
