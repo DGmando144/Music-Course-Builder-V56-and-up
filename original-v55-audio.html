@@ -1400,11 +1400,11 @@ body.v563-audio-mode #resourcePreviewCard #resourcePreview{display:block!importa
 <script>
 window.addEventListener('message',async function(event){
  const msg=event.data;
- if(!msg||msg.type!=='MCB_V563_AUDIO'||!(msg.file instanceof Blob))return;
+ if(!msg||msg.type!=='MCB_V563_MEDIA'||!(msg.file instanceof Blob))return;
  try{
   const key='v563-'+Date.now()+'-'+Math.random().toString(36).slice(2);
   await mediaPut(key,msg.file);
-  const r={id:key,name:msg.name||msg.file.name||'Audio',kind:'audio',size:msg.file.size,scope:'course'};
+  const r={id:key,name:msg.name||msg.file.name||'Audio',kind:msg.kind==='video'?'video':'audio',size:msg.file.size,scope:'course'};
   course.resources=course.resources||[];
   course.resources.push(r);
   // Preview must be attached to body before the old app's page containers
