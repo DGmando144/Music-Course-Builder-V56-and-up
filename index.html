@@ -108,6 +108,7 @@ function mcbRestoreYouTube(frame){
  const state=mcbYouTubeSnapshots.get(frame);if(!state)return;
  try{frame.contentWindow?.MCB_importYouTubeState?.(state)}catch(e){}
 }
+window.addEventListener('message',e=>{if(e.origin!==location.origin||e.data?.type!=='MCB_MONITOR_RETURN')return;const f=document.querySelector('.mcb-youtube-view iframe')||window.documentPictureInPicture?.window?.document?.querySelector('iframe');if(f&&e.data.state){try{f.contentWindow?.MCB_importYouTubeState?.(e.data.state)}catch(err){}}});
 $('float').onclick=async()=>{
  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
  if(!window.documentPictureInPicture){alert('True always-on-top Float requires a compatible desktop Chrome or Edge browser.');return;}
@@ -134,16 +135,24 @@ $('float').onclick=async()=>{
   $('viewer').classList.add('hidden');
   const restore=()=>{mcbCaptureYouTube(frame);if(anchor.parentNode)anchor.replaceWith(frame);frame.style.cssText='';$('viewer').classList.remove('hidden');setTimeout(()=>mcbRestoreYouTube(frame),250)};
   dock.onclick=()=>pip.close();
-  full.onclick=async()=>{
-   try{
-    // The YouTube native fullscreen button is inside a cross-origin iframe;
-    // we cannot programmatically click it. Request fullscreen on the iframe
-    // element itself, which is the closest browser-supported equivalent.
-    if(typeof frame.requestFullscreen!=='function')throw new Error('Iframe fullscreen is unavailable.');
-    await frame.requestFullscreen();
-   }catch(e){
-    alert('Chrome blocked fullscreen from this floating window. You can still use the fullscreen button inside the YouTube video. Details: '+e.message);
-   }
+  // Standard-window fullscreen experiment: user gesture opens a normal Chrome window
+  // on the floating window's screen (where the browser allows positioning).
+  // The new window has its own Full Screen control because browsers generally
+  // require a fresh user gesture to enter fullscreen after opening a popup.
+  full.onclick=()=>{
+   mcbCaptureYouTube(frame);
+   const snapshot=mcbYouTubeSnapshots.get(frame)||{};
+   const url=new URL('youtube-player.html',location.href);
+   url.searchParams.set('video',snapshot.url||frame.src||'');
+   url.hash='mcbState='+encodeURIComponent(JSON.stringify(snapshot));
+   const w=Math.max(600,Math.round(pip.outerWidth||900));
+   const h=Math.max(450,Math.round(pip.outerHeight||650));
+   const left=Math.round(pip.screenX||0),top=Math.round(pip.screenY||0);
+   const playerWindow=window.open(url.href,'MCB_YouTube_Monitor_Fullscreen',`popup=yes,left=${left},top=${top},width=${w},height=${h},resizable=yes`);
+   if(!playerWindow){alert('Chrome blocked the player window. Allow popups for this GitHub Pages site, then retry.');return;}
+   // Do not close Float: it is the return path, retaining the existing iframe.
+   // Pause the source to prevent simultaneous audio; the new window restores state.
+   try{frame.contentWindow?.MCB_pauseForExternalWindow?.()}catch(e){}
   };
   pip.addEventListener('pagehide',restore,{once:true});
  }catch(e){alert('True Float unavailable: '+e.message)}

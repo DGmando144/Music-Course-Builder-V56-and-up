@@ -83,6 +83,7 @@ for(const [id,tip] of Object.entries({play:'Play or pause (Spacebar)',loop:'Enab
 const incomingParams=new URLSearchParams(location.search);const incomingVideo=incomingParams.get('video')||incomingParams.get('url')||incomingParams.get('youtube');if(incomingVideo){$('youtubeUrl').value=incomingVideo;if(ytId(incomingVideo)){setTimeout(loadYouTube,0)}else{status('The practice item link is not a recognized YouTube video URL. You can edit it and click Load YouTube.',true)}}if(window.parent!==window){$('closePlayer').hidden=true;$('closePlayer').style.display='none';}
 $('closePlayer').onclick=()=>{if(window.parent!==window){window.parent.postMessage({type:'MCB_V56_YOUTUBE_CLOSE'},'*');return;}try{window.close()}catch(e){}const notice=$('closeNotice');notice.hidden=false;notice.textContent='If this tab does not close automatically, close it with Ctrl+W (Windows) or Command+W (Mac). Your Course Builder tab remains open.';};$('loadYoutube').onclick=loadYouTube;$('youtubeUrl').addEventListener('keydown',e=>{if(e.key==='Enter')loadYouTube()});$('localFile').onchange=e=>loadLocal(e.target.files?.[0]);$('play').onclick=()=>paused()?play():pause();function manualSeek(t){loopNavigationOverride=true;seek(t)}$('jumpToIn').onclick=()=>{if(a!==null)manualSeek(a)};$('jumpToOut').onclick=()=>{if(b!==null)manualSeek(b)};$('nudgeLeft').onclick=()=>manualSeek(current()-0.05);$('nudgeRight').onclick=()=>manualSeek(current()+0.05);$('back').onclick=()=>manualSeek(current()-5);$('forward').onclick=()=>manualSeek(current()+5);$('speed').onchange=applySpeed;$('markIn').onclick=()=>{loopNavigationOverride=false;a=current();if(b!==null&&b<=a){b=null;looping=false}update()};$('markOut').onclick=()=>{loopNavigationOverride=false;b=current();if(a!==null&&b<=a)looping=false;update()};$('loop').onclick=()=>{if(looping){looping=false;loopNavigationOverride=false;update();return}if(a===null||b===null||b<=a+.1){status('Set an In marker and a later Out marker first.',true);return}looping=true;loopNavigationOverride=false;lastLoopSeek=0;loopBusy=false;if(current()<a||current()>=b)seek(a);play();status('A–B loop enabled. Playback will repeat between In and Out.');update()};$('clear').onclick=()=>{a=b=null;looping=false;loopNavigationOverride=false;update()};$('seek').addEventListener('input',()=>{dragSeek=true;const d=duration();$('clock').textContent=fmt(d*Number($('seek').value)/1000)+' / '+fmt(d)});$('seek').addEventListener('change',()=>{dragSeek=false;seek(duration()*Number($('seek').value)/1000)});$('fullscreenBtn').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen();else $('player').requestFullscreen().catch(e=>status(e.message,true))};document.addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat||e.altKey||e.ctrlKey||e.metaKey||e.target.closest('input,select,textarea,[contenteditable="true"]'))return;e.preventDefault();paused()?play():pause()});const canvas=$('visualTimeline');let timelineZoom=1,timelineStart=0;
 let mcbPendingState=null;
+window.MCB_pauseForExternalWindow=()=>pause();
 window.MCB_exportYouTubeState=()=>({url:$('youtubeUrl').value,videoId:ytId($('youtubeUrl').value),position:current(),a,b,looping,zoom:timelineZoom,start:timelineStart,speed:$('speed').value,playing:!paused()});
 window.MCB_importYouTubeState=(state)=>{
  if(!state||typeof state!=='object')return;
@@ -222,6 +223,33 @@ const loop=document.getElementById('loop');if(loop){const observer=new MutationO
 clear.replaceChildren();
 clear.innerHTML='<svg viewBox="0 0 36 28" aria-hidden="true" focusable="false"><path d="M12 4H4v20h8M24 4h8v20h-8" fill="none" stroke="#e5efff" stroke-width="4.5" stroke-linecap="square" stroke-linejoin="round"/></svg>';
 clear.setAttribute('aria-label','Clear Markers');clear.title='Clear both IN and OUT markers';
+})();
+</script>
+
+<style id="mcb-monitor-window-style">
+#mcbMonitorToolbar{position:sticky;top:0;z-index:9999;background:#10243b;color:white;display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:7px 12px;font:600 13px system-ui}
+#mcbMonitorToolbar button{background:#246399;color:#fff;border:1px solid #679ac0;border-radius:5px;padding:7px 12px;cursor:pointer}
+body.mcb-monitor-window main{max-width:none;margin:0;padding:6px 12px 14px}
+body.mcb-monitor-window header{display:none}
+body.mcb-monitor-window #mcbMonitorToolbar:fullscreen{height:100vh}
+html:fullscreen,html:fullscreen body.mcb-monitor-window{height:100%;overflow:hidden;background:#101723}html:fullscreen body.mcb-monitor-window{display:flex;flex-direction:column}html:fullscreen body.mcb-monitor-window main{flex:1;min-height:0;overflow:auto;width:100%;display:flex;flex-direction:column}html:fullscreen body.mcb-monitor-window #player{flex:1;min-height:0;display:flex;flex-direction:column}html:fullscreen body.mcb-monitor-window .stage{flex:1;min-height:180px;aspect-ratio:auto}html:fullscreen body.mcb-monitor-window #mcbMonitorToolbar{flex:none}
+</style>
+<script id="mcb-monitor-window-script">
+(()=>{
+ const hash=new URLSearchParams(location.hash.slice(1));
+ const encoded=hash.get('mcbState');if(!encoded)return;
+ document.body.classList.add('mcb-monitor-window');
+ const bar=document.createElement('div');bar.id='mcbMonitorToolbar';
+ const info=document.createElement('span');info.textContent='Monitor window — click Full Screen here';info.style.marginRight='auto';
+ const full=document.createElement('button');full.textContent='Full Screen';
+ const exit=document.createElement('button');exit.textContent='Exit Full Screen';
+ const back=document.createElement('button');back.textContent='Return to Float';
+ bar.append(info,full,exit,back);document.body.prepend(bar);
+ full.onclick=async()=>{try{await document.documentElement.requestFullscreen()}catch(e){alert('Chrome did not allow fullscreen: '+e.message)}};
+ exit.onclick=()=>{if(document.fullscreenElement)document.exitFullscreen()};
+ back.onclick=()=>{try{window.opener?.postMessage({type:'MCB_MONITOR_RETURN',state:window.MCB_exportYouTubeState?.()},location.origin)}catch(e){}window.close()};
+ try{const state=JSON.parse(encoded);const apply=()=>{if(typeof window.MCB_importYouTubeState==='function')window.MCB_importYouTubeState(state);else setTimeout(apply,150)};apply()}catch(e){console.warn('Could not restore monitor-window playback',e)}
+ window.MCB_pauseForExternalWindow=()=>{};
 })();
 </script>
 </body></html>
