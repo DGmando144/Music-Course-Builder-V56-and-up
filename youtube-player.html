@@ -240,14 +240,30 @@ html:fullscreen,html:fullscreen body.mcb-monitor-window{height:100%;overflow:hid
  const encoded=hash.get('mcbState');if(!encoded)return;
  document.body.classList.add('mcb-monitor-window');
  const bar=document.createElement('div');bar.id='mcbMonitorToolbar';
- const info=document.createElement('span');info.textContent='Monitor window — click Full Screen here';info.style.marginRight='auto';
+ const info=document.createElement('span');info.textContent='MCB Float Player';info.style.marginRight='auto';
+ const room=document.createElement('button');room.textContent='Practice Room';
+ const pin=document.createElement('button');pin.textContent='Pin Player';
  const full=document.createElement('button');full.textContent='Full Screen';
  const exit=document.createElement('button');exit.textContent='Exit Full Screen';
- const back=document.createElement('button');back.textContent='Return to Float';
- bar.append(info,full,exit,back);document.body.prepend(bar);
+ const back=document.createElement('button');back.textContent='Close Player';
+ bar.append(info,room,pin,full,exit,back);document.body.prepend(bar);
+ room.onclick=()=>{try{window.opener?.postMessage({type:'MCB_SHOW_PRACTICE_ROOM'},location.origin);window.opener?.focus()}catch(e){alert('Please select the Course Builder tab to open another file.')}};
+ pin.onclick=async()=>{
+  if(!window.documentPictureInPicture){alert('Always-on-top Pin Player is unavailable in this browser. Use the Chrome window instead.');return;}
+  try{
+   const pip=await window.documentPictureInPicture.requestWindow({width:900,height:650});
+   const root=document.getElementById('player');const anchor=document.createComment('restore pinned player');root.before(anchor);
+   for(const sheet of document.querySelectorAll('style,link[rel=stylesheet]'))pip.document.head.append(sheet.cloneNode(true));
+   pip.document.body.style.cssText='margin:0;background:#101723;color:#fff;height:100vh;overflow:auto';
+   const dock=pip.document.createElement('button');dock.textContent='Return to Chrome Window';dock.style.cssText='position:sticky;top:0;z-index:1000;padding:8px;background:#285c87;color:white;border:1px solid #5484ad;cursor:pointer';
+   pip.document.body.append(dock,root);root.style.width='100%';root.style.margin='0';
+   const restore=()=>{if(anchor.parentNode)anchor.replaceWith(root);root.style.width='';root.style.margin='';};
+   dock.onclick=()=>pip.close();pip.addEventListener('pagehide',restore,{once:true});
+  }catch(e){alert('Pin Player could not open: '+e.message)}
+ }; 
  full.onclick=async()=>{try{await document.documentElement.requestFullscreen()}catch(e){alert('Chrome did not allow fullscreen: '+e.message)}};
  exit.onclick=()=>{if(document.fullscreenElement)document.exitFullscreen()};
- back.onclick=()=>{try{window.opener?.postMessage({type:'MCB_MONITOR_RETURN',state:window.MCB_exportYouTubeState?.()},location.origin)}catch(e){}window.close()};
+ back.onclick=()=>{try{window.opener?.postMessage({type:'MCB_SHOW_PRACTICE_ROOM'},location.origin)}catch(e){}window.close()};
  try{const state=JSON.parse(encoded);const apply=()=>{if(typeof window.MCB_importYouTubeState==='function')window.MCB_importYouTubeState(state);else setTimeout(apply,150)};apply()}catch(e){console.warn('Could not restore monitor-window playback',e)}
  window.MCB_pauseForExternalWindow=()=>{};
 })();

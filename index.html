@@ -108,53 +108,26 @@ function mcbRestoreYouTube(frame){
  const state=mcbYouTubeSnapshots.get(frame);if(!state)return;
  try{frame.contentWindow?.MCB_importYouTubeState?.(state)}catch(e){}
 }
+window.addEventListener('message',e=>{if(e.origin===location.origin&&e.data?.type==='MCB_SHOW_PRACTICE_ROOM'){$('viewer').classList.add('hidden');window.focus();return;}});
 window.addEventListener('message',e=>{if(e.origin!==location.origin||e.data?.type!=='MCB_MONITOR_RETURN')return;const f=document.querySelector('.mcb-youtube-view iframe')||window.documentPictureInPicture?.window?.document?.querySelector('iframe');if(f&&e.data.state){try{f.contentWindow?.MCB_importYouTubeState?.(e.data.state)}catch(err){}}});
-$('float').onclick=async()=>{
+$('float').onclick=()=>{
  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
- if(!window.documentPictureInPicture){alert('True always-on-top Float requires a compatible desktop Chrome or Edge browser.');return;}
- const stage=$('stage'),frame=stage.querySelector('iframe');
- if(frame&&$('viewer').classList.contains('mcb-youtube-view'))mcbCaptureYouTube(frame);
- if(!frame){alert('For MP3/MP4 use Float Player in the media player toolbar.');return;}
- if(document.pictureInPictureElement){alert('Close the existing floating window first.');return;}
- try{
-  const pip=await window.documentPictureInPicture.requestWindow({width:850,height:620});
-  const anchor=document.createComment('MCB float restore');frame.before(anchor);
-  if($('viewer').classList.contains('mcb-youtube-view')){
-    frame.addEventListener('load',()=>setTimeout(()=>mcbRestoreYouTube(frame),200));
-  }
-  pip.document.body.style.cssText='margin:0;background:#111827;width:100%;height:100vh;overflow:hidden;display:flex;flex-direction:column';
-  const controls=pip.document.createElement('nav');
-  controls.style.cssText='height:39px;flex:none;display:flex;align-items:center;justify-content:flex-end;gap:7px;padding:4px 9px;background:#182536;color:#fff;font:600 12px system-ui';
-  const dock=pip.document.createElement('button');dock.textContent='Dock Player';
-  const full=pip.document.createElement('button');full.textContent='Full Screen';
-  for(const btn of [dock,full])btn.style.cssText='cursor:pointer;background:#285c87;color:white;border:1px solid #5484ad;border-radius:5px;padding:5px 10px;font:600 12px system-ui';
-  controls.append(dock,full);pip.document.body.append(controls);
-  frame.style.cssText='display:block;width:100%;flex:1;min-height:0;border:0';
-  pip.document.body.append(frame);
-  setTimeout(()=>mcbRestoreYouTube(frame),250);
-  $('viewer').classList.add('hidden');
-  const restore=()=>{mcbCaptureYouTube(frame);if(anchor.parentNode)anchor.replaceWith(frame);frame.style.cssText='';$('viewer').classList.remove('hidden');setTimeout(()=>mcbRestoreYouTube(frame),250)};
-  dock.onclick=()=>pip.close();
-  // Standard-window fullscreen experiment: user gesture opens a normal Chrome window
-  // on the floating window's screen (where the browser allows positioning).
-  // The new window has its own Full Screen control because browsers generally
-  // require a fresh user gesture to enter fullscreen after opening a popup.
-  full.onclick=()=>{
-   mcbCaptureYouTube(frame);
-   const snapshot=mcbYouTubeSnapshots.get(frame)||{};
-   const url=new URL('youtube-player.html',location.href);
-   url.searchParams.set('video',snapshot.url||frame.src||'');
-   url.hash='mcbState='+encodeURIComponent(JSON.stringify(snapshot));
-   const w=Math.max(600,Math.round(pip.outerWidth||900));
-   const h=Math.max(450,Math.round(pip.outerHeight||650));
-   const left=Math.round(pip.screenX||0),top=Math.round(pip.screenY||0);
-   const playerWindow=window.open(url.href,'MCB_YouTube_Monitor_Fullscreen',`popup=yes,left=${left},top=${top},width=${w},height=${h},resizable=yes`);
-   if(!playerWindow){alert('Chrome blocked the player window. Allow popups for this GitHub Pages site, then retry.');return;}
-   // Do not close Float: it is the return path, retaining the existing iframe.
-   // Pause the source to prevent simultaneous audio; the new window restores state.
-   try{frame.contentWindow?.MCB_pauseForExternalWindow?.()}catch(e){}
-  };
-  pip.addEventListener('pagehide',restore,{once:true});
- }catch(e){alert('True Float unavailable: '+e.message)}
+ const frame=$('stage').querySelector('iframe');
+ if(!frame||!$('viewer').classList.contains('mcb-youtube-view')){alert('For MP3/MP4 use Float Player in the media player toolbar.');return;}
+ mcbCaptureYouTube(frame);
+ const snapshot=mcbYouTubeSnapshots.get(frame)||{};
+ const url=new URL('youtube-player.html',location.href);
+ url.searchParams.set('video',snapshot.url||frame.src||'');
+ url.hash='mcbState='+encodeURIComponent(JSON.stringify(snapshot));
+ const w=Math.min(1100,Math.max(650,Math.round(window.innerWidth*.72)));
+ const h=Math.min(850,Math.max(520,Math.round(window.innerHeight*.82)));
+ const left=Math.round(window.screenX+Math.max(20,(window.outerWidth-w)/2));
+ const top=Math.round(window.screenY+45);
+ const popup=window.open(url.href,'MCB_Float_Player',`popup=yes,left=${left},top=${top},width=${w},height=${h},resizable=yes`);
+ if(!popup){alert('Allow popups for this site to open the Chrome Float Player.');return;}
+ try{frame.contentWindow?.MCB_pauseForExternalWindow?.()}catch(e){}
+ // Reveal the existing Practice Room immediately; preserve its current Topic.
+ $('viewer').classList.add('hidden');
+ window.MCB_floatWindow=popup;
 };$('full').onclick=()=>{const frame=$('stage').querySelector('iframe');if(frame && $('viewer').classList.contains('mcb-youtube-view')){try{frame.contentWindow.document.getElementById('fullscreenBtn')?.click()}catch(e){frame.requestFullscreen?.().catch(()=>{})}return;} $('viewer').classList.remove('float');$('viewer').requestFullscreen?.().catch(()=>{})};render();
 </script></body></html>
