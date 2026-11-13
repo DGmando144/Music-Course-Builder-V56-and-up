@@ -1127,6 +1127,30 @@ let playerPipWindow=null;
 let pipPlayerRestore=null;
 let trueFullscreenWasFloating=false;
 async function floatVideoInWindow(host,floatButton){
+ // V56.4.2: delegate the PiP request to the top-level V56 page.
+ if(window.parent!==window && typeof window.parent.MCB_openEmbeddedVideoPiP==='function'){
+  try{
+   const pip=await window.parent.MCB_openEmbeddedVideoPiP(host,(pip,restore)=>{
+    playerPipWindow=pip;pipPlayerRestore=restore;
+    host.classList.remove('floating-player','player-expanded','video-practice-view','mini-media-player');
+    host.classList.add('pip-video-player');
+    host.querySelector('.wave-wrap')?.setAttribute('aria-hidden','true');
+    host.style.cssText='';
+    floatButton.textContent='Dock Player';
+    const full=host.querySelector('.media-fullscreen-btn');if(full)full.hidden=true;
+   },()=>{
+    host.classList.remove('pip-video-player');
+    host.querySelector('.wave-wrap')?.removeAttribute('aria-hidden');
+    host.classList.add('player-expanded','video-practice-view');
+    host.style.cssText='';
+    floatButton.textContent='Float Player';
+    const full=host.querySelector('.media-fullscreen-btn');if(full)full.hidden=false;
+    playerPipWindow=null;pipPlayerRestore=null;
+   });
+   return !!pip;
+  }catch(e){alert('Floating video window unavailable: '+e.message);return false}
+ }
+
  if(!window.documentPictureInPicture){
   alert('This browser does not support separate always-on-top video windows. Try the installed Chrome desktop app on GitHub Pages.');return false;
  }
@@ -1395,10 +1419,17 @@ document.getElementById('youtubeCompanionBtn').addEventListener('click',openYout
 body.v563-audio-mode > :not(#resourcePreviewCard):not(script):not(style) {display:none!important}
 body.v563-audio-mode #resourcePreviewCard{display:block!important;position:fixed!important;inset:0!important;z-index:2147483640!important;overflow:auto!important;background:#f2f6fb!important;margin:0!important;padding:10px!important;border:0!important;border-radius:0!important;max-width:none!important}
 body.v563-audio-mode #resourcePreviewCard #closeResourcePreview{display:none!important}
-body.v563-audio-mode #resourcePreviewCard #resourcePreview{display:block!important;min-height:60vh}
+body.v563-audio-mode #resourcePreviewCard #resourcePreview:not(.video-practice-view){display:block!important;min-height:60vh}
+body.v563-audio-mode #resourcePreviewCard #resourcePreview.video-practice-view{display:flex!important;min-height:0!important}
+body.v563-audio-mode #resourcePreviewCard{padding:0!important;overflow:hidden!important}
+body.v563-audio-mode #resourcePreviewCard #resourcePreview.video-practice-view{
+ position:relative!important;inset:auto!important;width:100%!important;height:100dvh!important;
+ max-width:none!important;max-height:100dvh!important;min-height:0!important;z-index:auto!important;
+}
+body.v563-audio-mode #resourcePreviewCard #resourcePreview.video-practice-view>.media-video-region{min-height:0!important}
 </style>
 <script>
-window.addEventListener('message',async function(event){
+window.addEventListener('message' ,async function(event){
  const msg=event.data;
  if(!msg||msg.type!=='MCB_V563_MEDIA'||!(msg.file instanceof Blob))return;
  try{
