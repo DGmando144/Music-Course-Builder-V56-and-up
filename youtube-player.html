@@ -241,7 +241,7 @@ html:fullscreen,html:fullscreen body.mcb-monitor-window{height:100%;overflow:hid
  document.body.classList.add('mcb-monitor-window');
  const bar=document.createElement('div');bar.id='mcbMonitorToolbar';
  const info=document.createElement('span');info.textContent='MCB Float Player';info.style.marginRight='auto';
- const room=document.createElement('button');room.textContent='Practice Room';
+ const room=document.createElement('button');room.textContent='Swap Player ↔';room.title='Bring the Practice Room player to the foreground';
  const pin=document.createElement('button');pin.textContent='Pin Player';
  const full=document.createElement('button');full.textContent='Full Screen';
  const exit=document.createElement('button');exit.textContent='Exit Full Screen';
@@ -253,10 +253,10 @@ html:fullscreen,html:fullscreen body.mcb-monitor-window{height:100%;overflow:hid
  roomHint.id='mcbRoomHint';roomHint.style.cssText='font:12px system-ui;color:#f9d58b;max-width:280px';
  room.after(roomHint);
  room.onclick=()=>{
-  roomHint.textContent='Switching to Practice Room…';
+  roomHint.textContent='Switching to other player…';
   try{window.opener?.postMessage({type:'MCB_SHOW_PRACTICE_ROOM'},location.origin)}catch(e){}
   try{
-   const target=window.open('','MCB_Practice_Room');
+   const target=window.opener&&!window.opener.closed?window.opener:window.open('','MCB_Practice_Room');
    if(target&&!target.closed){target.focus();roomHint.textContent='Practice Room selected. If Chrome keeps this window in front, select the Course Builder tab.';return;}
   }catch(e){}
   try{if(window.opener&&!window.opener.closed){window.opener.focus();roomHint.textContent='Select the Course Builder tab if it did not come forward.';return;}}catch(e){}
