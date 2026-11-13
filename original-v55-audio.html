@@ -416,7 +416,14 @@ html body .pip-audio-player .speed-menu[hidden]{display:none!important}
 .speed-menu.mcb-speed-open{display:grid!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
 .speed-menu.mcb-speed-open[hidden]{display:none!important}
 </style>
-<style id="mcb-v56527-controls">button.mcb-float-audio-close{display:none!important}.pip-audio-player .mcb-float-toggle,.pip-video-player .mcb-float-toggle{display:none!important}.media-topbar button:not(.mcb-float-toggle):not(.media-fullscreen-btn){display:none!important}</style></head>
+<style id="mcb-v56528-controls">
+/* In floating MP3, the browser X is the only window-close control. */
+html body .pip-audio-player .media-topbar button{display:none!important}
+/* Floating MP4 offers only Fullscreen, no redundant Close or Float. */
+html body .pip-video-player .media-topbar button{display:none!important}
+html body .pip-video-player .media-topbar .media-fullscreen-btn{display:inline-flex!important}
+/* Embedded original player is managed by the main MCB toolbar. */
+</style></head>
 <body>
 <header><h1>Music Course Builder</h1><p>Build a course, organize classes, and plan focused practice — V55.7.12 · YouTube Titles</p></header>
 <main>
@@ -1324,7 +1331,7 @@ function makeMediaViewer(file,r,host){
     await window.parent.MCB_openEmbeddedVideoPiP(host,(pip,restore)=>{
      playerPipWindow=pip;pipPlayerRestore=restore;
      host.classList.add('floating-player','mini-media-player','pip-audio-player');
-     full.textContent='Return to Original';
+     full.textContent='Full Screen';
      host.classList.remove('player-expanded','video-practice-view');
      host.style.cssText='';float.textContent='Float Player';
     },()=>{
@@ -1345,8 +1352,8 @@ function makeMediaViewer(file,r,host){
  const full=document.createElement('button');full.type='button';full.className='secondary media-fullscreen-btn mcb-mini-action';full.textContent='Full Screen';
  full.title='Return to the main Music Course Builder and expand the player';
  full.onclick=()=>{
-  // Document PiP disallows requestFullscreen(). Return the existing playing element
-  // to MCB, then expand its host without invoking the restricted Fullscreen API.
+  // Chrome disallows fullscreen inside Document PiP. Move the live player
+  // into the main document, then request actual browser fullscreen on its host.
   if(playerPipWindow && host.ownerDocument===playerPipWindow.document){
    const restore=pipPlayerRestore;
    pipPlayerRestore=null;
@@ -1355,10 +1362,18 @@ function makeMediaViewer(file,r,host){
    try{pip?.close()}catch(e){}
    host.classList.remove('floating-player','mini-media-player','pip-audio-player','pip-video-player');
    host.classList.add('player-expanded');
-   if(isVideo)host.classList.add('video-practice-view');
+   if(isVideo)host.classList.add('video-practice-view','media-viewer-true-fullscreen');
    host.style.cssText='';
-   full.textContent='Fullscreen';
+   full.textContent='Exit Full Screen';
    try{window.parent?.MCB_expandEmbeddedMedia?.()}catch(e){console.warn(e)}
+   if(isVideo){
+    // Fullscreen belongs to the parent Class document when embedded.
+    const target=window.frameElement?.closest?.('.viewer') || host;
+    Promise.resolve(target.requestFullscreen()).catch(e=>{
+     host.classList.remove('media-viewer-true-fullscreen');
+     alert('Browser fullscreen unavailable: '+e.message);
+    });
+   }
    return;
   }
   // MCB fullscreen means a full-size player in its main window.
