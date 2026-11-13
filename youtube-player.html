@@ -281,7 +281,7 @@ html:fullscreen,html:fullscreen body.mcb-monitor-window{height:100%;overflow:hid
  }; 
  full.onclick=async()=>{try{await document.documentElement.requestFullscreen()}catch(e){alert('Chrome did not allow fullscreen: '+e.message)}};
  exit.onclick=()=>{if(document.fullscreenElement)document.exitFullscreen()};
- back.onclick=()=>{try{window.opener?.postMessage({type:'MCB_SHOW_PRACTICE_ROOM'},location.origin)}catch(e){}window.close()};
+ back.onclick=()=>{try{window.opener?.postMessage({type:'MCB_FLOAT_CLOSED'},location.origin)}catch(e){}window.close()};
  try{const state=JSON.parse(encoded);const apply=()=>{if(typeof window.MCB_importYouTubeState==='function')window.MCB_importYouTubeState(state);else setTimeout(apply,150)};apply()}catch(e){console.warn('Could not restore monitor-window playback',e)}
  window.MCB_pauseForExternalWindow=()=>{};
 })();
