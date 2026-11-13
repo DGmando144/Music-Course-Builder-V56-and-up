@@ -136,10 +136,13 @@ $('float').onclick=async()=>{
   dock.onclick=()=>pip.close();
   full.onclick=async()=>{
    try{
-    if(!pip.document.fullscreenEnabled)throw new Error('Fullscreen is not supported for this floating window by Chrome.');
-    await pip.document.documentElement.requestFullscreen();
+    // The YouTube native fullscreen button is inside a cross-origin iframe;
+    // we cannot programmatically click it. Request fullscreen on the iframe
+    // element itself, which is the closest browser-supported equivalent.
+    if(typeof frame.requestFullscreen!=='function')throw new Error('Iframe fullscreen is unavailable.');
+    await frame.requestFullscreen();
    }catch(e){
-    alert('Chrome may not allow fullscreen in an always-on-top floating window. Move the floating window to your preferred monitor first. Fullscreen in the original tab cannot automatically switch monitors. Details: '+e.message);
+    alert('Chrome blocked fullscreen from this floating window. You can still use the fullscreen button inside the YouTube video. Details: '+e.message);
    }
   };
   pip.addEventListener('pagehide',restore,{once:true});
