@@ -412,6 +412,9 @@ html body .pip-audio-player .media-topbar .mcb-float-audio-close,
 html body .pip-video-player .media-topbar .mcb-float-audio-close{display:inline-flex!important}
 html body .pip-audio-player .speed-menu{display:grid;z-index:2147483647!important}
 html body .pip-audio-player .speed-menu[hidden]{display:none!important}
+/* V56.5.26: ensure the detached MP3 speed menu is visible above its controls. */
+.speed-menu.mcb-speed-open{display:grid!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+.speed-menu.mcb-speed-open[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -863,29 +866,42 @@ function addMediaControls(media,r,host,file){
  }
  // Put the menu outside the clipped, horizontally scrolling mini toolbar.
  // The floating menu is placed in the same document as the player (also works in PiP).
- function closeSpeedMenu(){speedMenu.hidden=true;speedButton.setAttribute('aria-expanded','false');if(speedMenu.parentNode!==speedButton.parentNode)speedButton.parentNode.append(speedMenu)}
+ // Keep the speed menu in the player's current document, including detached PiP.
+ function closeSpeedMenu(){
+  speedMenu.hidden=true;speedMenu.classList.remove('mcb-speed-open');
+  speedButton.setAttribute('aria-expanded','false');
+  if(speedButton.parentNode && speedMenu.parentNode!==speedButton.parentNode)speedButton.parentNode.append(speedMenu);
+ }
  function positionSpeedMenu(){
   const rect=speedButton.getBoundingClientRect();
   const win=speedButton.ownerDocument.defaultView||window;
-  const width=Math.min(250,win.innerWidth-16);
-  speedMenu.style.position='fixed';speedMenu.style.transform='none';speedMenu.style.right='auto';speedMenu.style.bottom='auto';
-  speedMenu.style.zIndex='2147483647';
-  speedMenu.style.width=width+'px';speedMenu.style.left=Math.max(8,Math.min(win.innerWidth-width-8,rect.left))+'px';
+  const width=Math.max(120,Math.min(250,win.innerWidth-16));
+  speedMenu.style.setProperty('position','fixed','important');
+  speedMenu.style.setProperty('transform','none','important');
+  speedMenu.style.setProperty('right','auto','important');
+  speedMenu.style.setProperty('bottom','auto','important');
+  speedMenu.style.setProperty('z-index','2147483647','important');
+  speedMenu.style.setProperty('width',width+'px','important');
+  speedMenu.style.setProperty('left',Math.max(8,Math.min(win.innerWidth-width-8,rect.left))+'px','important');
   const h=speedMenu.getBoundingClientRect().height;
-  speedMenu.style.top=(rect.top>=h+8?rect.top-h-5:Math.max(8,Math.min(win.innerHeight-h-8,rect.bottom+5)))+'px';
+  speedMenu.style.setProperty('top',(rect.top>=h+8?rect.top-h-5:Math.max(8,Math.min(win.innerHeight-h-8,rect.bottom+5)))+'px','important');
  }
- speedButton.onclick=e=>{
+ speedButton.addEventListener('click',e=>{
   e.stopPropagation();
   if(!speedMenu.hidden){closeSpeedMenu();return}
   const d=speedButton.ownerDocument;
   (d.fullscreenElement||d.body).append(speedMenu);
-  speedMenu.hidden=false;positionSpeedMenu();speedButton.setAttribute('aria-expanded','true');
- };
+  speedMenu.hidden=false;speedMenu.classList.add('mcb-speed-open');
+  positionSpeedMenu();speedButton.setAttribute('aria-expanded','true');
+  if(!d.__mcbSpeedDismiss){d.addEventListener('pointerdown',ev=>{
+   const open=d.querySelector('.speed-menu.mcb-speed-open');
+   if(open&&!open.contains(ev.target)&&!ev.target.closest?.('#speedButton')){
+    const btn=d.getElementById('speedButton');
+    if(btn){open.hidden=true;open.classList.remove('mcb-speed-open');btn.setAttribute('aria-expanded','false');btn.parentNode.append(open)}
+   }
+  });d.__mcbSpeedDismiss=true}
+ });
  speedMenu.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSpeedMenu();speedButton.focus()}});
- function dismissSpeedOnOutside(e){if(!speedMenu.hidden&&!speedMenu.contains(e.target)&&e.target!==speedButton)closeSpeedMenu()}
- document.addEventListener('pointerdown',dismissSpeedOnOutside);
- // A moved player lives in a different document: attach outside-click handling there too.
- speedButton.addEventListener('click',()=>{const d=speedButton.ownerDocument;if(d!==document&&!d.__mcbSpeedDismiss){d.addEventListener('pointerdown',dismissSpeedOnOutside);d.__mcbSpeedDismiss=true}});
  showSpeed();
  function setPitchCorrection(on){for(const key of ['preservesPitch','mozPreservesPitch','webkitPreservesPitch']){if(key in media)try{media[key]=on}catch(e){}}}
  setPitchCorrection(true);
@@ -1325,7 +1341,7 @@ function makeMediaViewer(file,r,host){
   float.textContent=floating?'Dock Player':'Float Player';
  };
  const full=document.createElement('button');full.type='button';full.className='secondary media-fullscreen-btn mcb-mini-action';full.textContent='Full Screen';
- full.title='True screen fullscreen for video; Escape exits';
+ full.title='Return to the main Music Course Builder and expand the player';
  full.onclick=()=>{
   // Document PiP disallows requestFullscreen(). Return the existing playing element
   // to MCB, then expand its host without invoking the restricted Fullscreen API.
@@ -1336,13 +1352,21 @@ function makeMediaViewer(file,r,host){
    const pip=playerPipWindow;playerPipWindow=null;
    try{pip?.close()}catch(e){}
    host.classList.remove('floating-player','mini-media-player','pip-audio-player','pip-video-player');
+   host.classList.add('player-expanded');
+   if(isVideo)host.classList.add('video-practice-view');
    host.style.cssText='';
+   full.textContent='Exit Full Screen';
    try{window.parent?.MCB_expandEmbeddedMedia?.()}catch(e){console.warn(e)}
    return;
   }
   // MCB fullscreen means a full-size player in its main window.
-  if(host.classList.contains('player-expanded'))return;
+  if(host.classList.contains('player-expanded')){
+   host.classList.remove('player-expanded','video-practice-view');
+   full.textContent='Full Screen';
+   return;
+  }
   host.classList.add('player-expanded');
+  full.textContent='Exit Full Screen';
   if(isVideo)host.classList.add('video-practice-view');
   host.classList.remove('floating-player','mini-media-player');
   host.style.cssText='';
