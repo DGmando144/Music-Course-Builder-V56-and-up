@@ -42,7 +42,7 @@
 .viewer.mcb-custom-video:not(.hidden):not(.mcb-floated) iframe{height:100%}
 .pdf-workspace.mcb-front{z-index:60!important}
 .viewer.mcb-front{z-index:60!important}
-</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.22 Unified Upper Controls TEST</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button><button id="bringFloat" class="hidden" title="Switch to the existing floating player">Switch Media ↔</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
+</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.23 Mini Window Controls TEST</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button><button id="bringFloat" class="hidden" title="Switch to the existing floating player">Switch Media ↔</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
 <input id="filePicker" type="file" multiple hidden accept="audio/*,video/*,.pdf,.mp3,.wav,.m4a,.ogg,.flac,.mp4,.webm,.mov"><input id="jsonPicker" type="file" hidden accept=".json,application/json">
 <dialog id="editor"><form method="dialog"><h3 id="editTitle"></h3><label id="nameLabel">Name</label><input id="editName" required><menu><button value="cancel">Cancel</button><button class="primary" id="editOk" value="ok">Save</button></menu></form></dialog>
 <dialog id="destination"><form method="dialog"><h3>Where should these files go?</h3><label>Subject</label><select id="destSubject"></select><label>Topic</label><select id="destTopic"></select><menu><button value="cancel">Cancel</button><button class="primary" value="ok">Add Files</button></menu></form></dialog>
@@ -215,16 +215,16 @@ function openMedia(m){
 // This function is called directly during the player's Float click, preserving user activation.
 window.MCB_openEmbeddedVideoPiP=async function(host, onOpened, onClosed, mediaType="video"){
  if(!window.documentPictureInPicture)throw new Error('This browser does not support Document Picture-in-Picture.');
- const pip=await window.documentPictureInPicture.requestWindow(mediaType==="audio"?{width:420,height:230}:{width:640,height:400});
+ const pip=await window.documentPictureInPicture.requestWindow(mediaType==="audio"?{width:420,height:205}:{width:640,height:400});
  const sourceDoc=host.ownerDocument;
  const anchor=sourceDoc.createComment('V55 video float return point');
  host.parentNode.insertBefore(anchor,host);
  for(const sheet of sourceDoc.styleSheets){
   try{const style=pip.document.createElement('style');style.textContent=Array.from(sheet.cssRules).map(rule=>rule.cssText).join('\n');pip.document.head.append(style)}catch(e){}
  }
- pip.document.body.style.cssText='margin:0;width:100%;height:100dvh;overflow:auto;background:#fff';
+ pip.document.body.style.cssText='margin:0;width:100%;height:100dvh;overflow:hidden;background:#fff';
  const floatStyle=pip.document.createElement('style');
- floatStyle.textContent='html,body{min-width:0!important;min-height:0!important} .pip-video-player{width:100%!important;height:100%!important;max-width:none!important;min-width:0!important;inset:0!important;position:relative!important;margin:0!important;overflow:auto!important} .pip-audio-player{position:relative!important;inset:0!important;width:100%!important;max-width:none!important;min-width:0!important;height:auto!important;margin:0!important;box-shadow:none!important}';
+ floatStyle.textContent='html,body{min-width:0!important;min-height:0!important} .pip-video-player{width:100%!important;height:100%!important;max-width:none!important;min-width:0!important;inset:0!important;position:relative!important;margin:0!important;overflow:auto!important} .pip-audio-player{position:relative!important;inset:0!important;width:100%!important;max-width:none!important;min-width:0!important;height:100%!important;margin:0!important;box-shadow:none!important;overflow:hidden!important;resize:none!important}';
  pip.document.head.append(floatStyle);
  pip.document.body.append(host);
  // Reveal the underlying Practice Room, not the empty V55 iframe background.

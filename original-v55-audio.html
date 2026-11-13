@@ -376,6 +376,24 @@ label{display:block;font-weight:650;font-size:13px;margin:0 0 5px}input,select,t
 html body .media-topbar{display:none!important}
 html body .pip-audio-player .media-topbar,
 html body .pip-video-player .media-topbar{display:flex!important}
+
+/* V56.5.23: single compact blue window-action strip inside detached mini players. */
+.pip-audio-player .media-topbar,.pip-video-player .media-topbar{gap:4px!important;align-items:center!important;padding:3px 4px!important;cursor:default!important}
+.pip-audio-player .media-topbar strong,.pip-video-player .media-topbar strong{flex:1 1 100%!important;min-width:0!important;font-size:12px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pip-audio-player .media-topbar .mcb-mini-action,.pip-video-player .media-topbar .mcb-mini-action{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ padding:4px 6px!important;min-height:28px!important;border-radius:6px!important;
+ border:1px solid #6999ce!important;background:linear-gradient(#d7eaff,#80b6f1)!important;
+ box-shadow:inset 0 1px 0 #fff,0 1px 2px #9fb8d4!important;
+ color:#14395f!important;font-size:10px!important;font-weight:700!important;white-space:nowrap!important;
+}
+.pip-audio-player .media-topbar .media-fullscreen-btn,.pip-audio-player .media-topbar .mcb-float-audio-close,
+.pip-video-player .media-topbar .media-fullscreen-btn{display:inline-flex!important}
+.pip-audio-player{padding:4px!important;border:0!important;box-shadow:none!important;min-height:0!important;max-height:none!important;overflow:hidden!important;resize:none!important}
+.pip-audio-player .media-video-region.audio-region,.pip-audio-player .media-splitter{display:none!important}
+.pip-audio-player .media-tools{margin-top:0!important;padding:3px!important}
+.pip-audio-player .wave-wrap{display:none!important}
+.pip-video-player .media-topbar .mcb-mini-action{font-size:11px!important}
 </style>
 </head>
 <body>
@@ -1249,7 +1267,7 @@ function makeMediaViewer(file,r,host){
  const bar=document.createElement('div');bar.className='media-topbar';
  const title=document.createElement('strong');title.textContent=mediaDisplayName(r.name);
  const isVideo=r.kind==='video';
- const float=document.createElement('button');float.className='secondary';float.textContent='Float Player';
+ const float=document.createElement('button');float.className='secondary mcb-mini-action';float.textContent='Float Player';
  float.title=isVideo?'Open a separate movable video window (640 × 400); resize via window edges':'Open compact MP3 controls in a separate window over the Class';
  float.onclick=async()=>{
   if(isVideo){
@@ -1280,12 +1298,23 @@ function makeMediaViewer(file,r,host){
   else{host.classList.remove('floating-player','mini-media-player');host.style.cssText='';}
   float.textContent=floating?'Dock Player':'Float Player';
  };
- const full=document.createElement('button');full.type='button';full.className='secondary media-fullscreen-btn';full.textContent='Full Screen';
+ const full=document.createElement('button');full.type='button';full.className='secondary media-fullscreen-btn mcb-mini-action';full.textContent='Full Screen';
  full.title='True screen fullscreen for video; Escape exits';
- full.onclick=()=>{if(isVideo){if(document.fullscreenElement===host)document.exitFullscreen();else enterTrueVideoFullscreen(host,full);}else togglePlayerFullscreen(host,full);};
- const switchMedia=document.createElement('button');switchMedia.type='button';switchMedia.className='secondary';switchMedia.textContent='Switch Media ↔';switchMedia.title='Bring the other player forward';switchMedia.onclick=()=>{try{if(window.parent!==window&&typeof window.parent.MCB_switchMedia==='function'){window.parent.MCB_switchMedia();return;}}catch(e){}alert('Open a second player in the Practice Room to switch between them.')};
- const close=document.createElement('button');close.className='secondary mcb-float-audio-close';close.textContent='Close Player';close.onclick=()=>{if(window.parent!==window){try{if(typeof window.parent.MCB_returnToTopic==='function'){window.parent.MCB_returnToTopic();return;}}catch(e){console.warn('Parent close callback unavailable',e)}window.parent.postMessage({type:'MCB_V563_CLOSE'},'*');return;}if(playerPipWindow)playerPipWindow.close();closeMedia();$('resourcePreviewCard').hidden=true;};
- bar.append(title,switchMedia,float,full,close);host.append(bar);enablePlayerDrag(host,bar);
+ full.onclick=()=>{
+  if(playerPipWindow&&host.ownerDocument===playerPipWindow.document){
+   const d=host.ownerDocument;
+   if(d.fullscreenElement)d.exitFullscreen().catch(()=>{});
+   else host.requestFullscreen?.().catch(e=>alert('Fullscreen unavailable in floating window: '+e.message));
+   return;
+  }
+  if(isVideo){if(document.fullscreenElement===host)document.exitFullscreen();else enterTrueVideoFullscreen(host,full);}
+  else togglePlayerFullscreen(host,full);
+ };
+ const switchMedia=document.createElement('button');switchMedia.type='button';switchMedia.className='secondary mcb-mini-action';switchMedia.textContent='Switch Media ↔';switchMedia.title='Bring the other player forward';switchMedia.onclick=()=>{try{if(window.parent!==window&&typeof window.parent.MCB_switchMedia==='function'){window.parent.MCB_switchMedia();return;}}catch(e){}alert('Open a second player in the Practice Room to switch between them.')};
+ const close=document.createElement('button');close.className='secondary mcb-float-audio-close mcb-mini-action';close.textContent='Close Player';close.onclick=()=>{if(window.parent!==window){try{if(typeof window.parent.MCB_returnToTopic==='function'){window.parent.MCB_returnToTopic();return;}}catch(e){console.warn('Parent close callback unavailable',e)}window.parent.postMessage({type:'MCB_V563_CLOSE'},'*');return;}if(playerPipWindow)playerPipWindow.close();closeMedia();$('resourcePreviewCard').hidden=true;};
+ const second=document.createElement('button');second.type='button';second.className='secondary mcb-mini-action';second.textContent='Open Second Media';
+ second.onclick=()=>{try{if(window.parent!==window&&typeof window.parent.MCB_openSecondMedia==='function'){window.parent.MCB_openSecondMedia();return;}}catch(e){}try{window.parent.postMessage({type:'MCB_OPEN_SECOND_MEDIA'},'*')}catch(e){}};
+ bar.append(title,switchMedia,second,float,full,close);host.append(bar);enablePlayerDrag(host,bar);
  // V56.5.22: parent MCB toolbar delegates to these established player actions.
  // The local bar remains available only inside the detached PiP window.
  host.dataset.mcbManaged='1';
@@ -1487,7 +1516,7 @@ window.addEventListener('message' ,async function(event){
 
 <script>
 // V56.5.18: expose second-media picker alongside every Switch Media control.
-(()=>{const attach=()=>{if(window.parent!==window)return;for(const btn of document.querySelectorAll('button')){if(!/Switch Media/i.test(btn.textContent||'')||btn.dataset.mcbSecondAdded)continue;btn.dataset.mcbSecondAdded='1';const second=document.createElement('button');second.type='button';second.textContent='Open Second Media';second.className=btn.className;second.onclick=()=>{try{window.parent.MCB_openSecondMedia()}catch(e){window.parent.postMessage({type:'MCB_OPEN_SECOND_MEDIA'},'*')}};btn.after(second)}};new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});attach()})();
+(()=>{const attach=()=>{if(window.parent!==window)return;for(const btn of document.querySelectorAll('button')){if(!/Switch Media/i.test(btn.textContent||'')||btn.dataset.mcbSecondAdded||btn.closest('.media-topbar'))continue;btn.dataset.mcbSecondAdded='1';const second=document.createElement('button');second.type='button';second.textContent='Open Second Media';second.className=btn.className;second.onclick=()=>{try{window.parent.MCB_openSecondMedia()}catch(e){window.parent.postMessage({type:'MCB_OPEN_SECOND_MEDIA'},'*')}};btn.after(second)}};new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});attach()})();
 </script>
 </body>
 </html>
