@@ -403,6 +403,15 @@ html body .pip-video-player .media-topbar{display:flex!important}
 .pip-video-player .media-topbar .mcb-float-audio-close,
 .pip-audio-player .media-topbar .media-fullscreen-btn,
 .pip-audio-player .media-topbar .mcb-float-audio-close{display:inline-flex!important}
+/* V56.5.25 detached controls: no misleading Float/Dock action. */
+html body .pip-audio-player .media-topbar .mcb-float-toggle,
+html body .pip-video-player .media-topbar .mcb-float-toggle{display:none!important}
+html body .pip-audio-player .media-topbar .media-fullscreen-btn,
+html body .pip-video-player .media-topbar .media-fullscreen-btn,
+html body .pip-audio-player .media-topbar .mcb-float-audio-close,
+html body .pip-video-player .media-topbar .mcb-float-audio-close{display:inline-flex!important}
+html body .pip-audio-player .speed-menu{display:grid;z-index:2147483647!important}
+html body .pip-audio-player .speed-menu[hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -857,18 +866,26 @@ function addMediaControls(media,r,host,file){
  function closeSpeedMenu(){speedMenu.hidden=true;speedButton.setAttribute('aria-expanded','false');if(speedMenu.parentNode!==speedButton.parentNode)speedButton.parentNode.append(speedMenu)}
  function positionSpeedMenu(){
   const rect=speedButton.getBoundingClientRect();
-  const width=Math.min(250,window.innerWidth-16);
+  const win=speedButton.ownerDocument.defaultView||window;
+  const width=Math.min(250,win.innerWidth-16);
   speedMenu.style.position='fixed';speedMenu.style.transform='none';speedMenu.style.right='auto';speedMenu.style.bottom='auto';
-  speedMenu.style.width=width+'px';speedMenu.style.left=Math.max(8,Math.min(window.innerWidth-width-8,rect.left))+'px';
+  speedMenu.style.zIndex='2147483647';
+  speedMenu.style.width=width+'px';speedMenu.style.left=Math.max(8,Math.min(win.innerWidth-width-8,rect.left))+'px';
   const h=speedMenu.getBoundingClientRect().height;
-  speedMenu.style.top=(rect.top>=h+8?rect.top-h-5:Math.min(window.innerHeight-h-8,rect.bottom+5))+'px';
+  speedMenu.style.top=(rect.top>=h+8?rect.top-h-5:Math.max(8,Math.min(win.innerHeight-h-8,rect.bottom+5)))+'px';
  }
- speedButton.onclick=()=>{
+ speedButton.onclick=e=>{
+  e.stopPropagation();
   if(!speedMenu.hidden){closeSpeedMenu();return}
-  (speedButton.ownerDocument.fullscreenElement||speedButton.ownerDocument.body).append(speedMenu);speedMenu.hidden=false;positionSpeedMenu();speedButton.setAttribute('aria-expanded','true');
+  const d=speedButton.ownerDocument;
+  (d.fullscreenElement||d.body).append(speedMenu);
+  speedMenu.hidden=false;positionSpeedMenu();speedButton.setAttribute('aria-expanded','true');
  };
  speedMenu.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSpeedMenu();speedButton.focus()}});
- document.addEventListener('pointerdown',e=>{if(!speedMenu.hidden&&!speedMenu.contains(e.target)&&e.target!==speedButton)closeSpeedMenu()});
+ function dismissSpeedOnOutside(e){if(!speedMenu.hidden&&!speedMenu.contains(e.target)&&e.target!==speedButton)closeSpeedMenu()}
+ document.addEventListener('pointerdown',dismissSpeedOnOutside);
+ // A moved player lives in a different document: attach outside-click handling there too.
+ speedButton.addEventListener('click',()=>{const d=speedButton.ownerDocument;if(d!==document&&!d.__mcbSpeedDismiss){d.addEventListener('pointerdown',dismissSpeedOnOutside);d.__mcbSpeedDismiss=true}});
  showSpeed();
  function setPitchCorrection(on){for(const key of ['preservesPitch','mozPreservesPitch','webkitPreservesPitch']){if(key in media)try{media[key]=on}catch(e){}}}
  setPitchCorrection(true);
@@ -1310,25 +1327,31 @@ function makeMediaViewer(file,r,host){
  const full=document.createElement('button');full.type='button';full.className='secondary media-fullscreen-btn mcb-mini-action';full.textContent='Full Screen';
  full.title='True screen fullscreen for video; Escape exits';
  full.onclick=()=>{
-  if(playerPipWindow&&host.ownerDocument===playerPipWindow.document){
-   if(isVideo){enterTrueVideoFullscreen(host,full);return;}
-   // Audio: use fullscreen on the mini when permitted, otherwise restore to the Class.
-   const d=host.ownerDocument;
-   if(d.fullscreenElement){d.exitFullscreen().catch(()=>{});return;}
-   host.requestFullscreen?.().catch(async e=>{
-     if(pipPlayerRestore){const restore=pipPlayerRestore;pipPlayerRestore=null;restore();}
-     if(playerPipWindow){try{playerPipWindow.close()}catch(_){}playerPipWindow=null;}
-     if(!host.classList.contains('player-expanded'))togglePlayerFullscreen(host,full);
-   });
+  // Document PiP disallows requestFullscreen(). Return the existing playing element
+  // to MCB, then expand its host without invoking the restricted Fullscreen API.
+  if(playerPipWindow && host.ownerDocument===playerPipWindow.document){
+   const restore=pipPlayerRestore;
+   pipPlayerRestore=null;
+   if(restore)restore();
+   const pip=playerPipWindow;playerPipWindow=null;
+   try{pip?.close()}catch(e){}
+   host.classList.remove('floating-player','mini-media-player','pip-audio-player','pip-video-player');
+   host.style.cssText='';
+   try{window.parent?.MCB_expandEmbeddedMedia?.()}catch(e){console.warn(e)}
    return;
   }
-  if(isVideo){if(document.fullscreenElement===host)document.exitFullscreen();else enterTrueVideoFullscreen(host,full);}
-  else togglePlayerFullscreen(host,full);
+  // MCB fullscreen means a full-size player in its main window.
+  if(host.classList.contains('player-expanded'))return;
+  host.classList.add('player-expanded');
+  if(isVideo)host.classList.add('video-practice-view');
+  host.classList.remove('floating-player','mini-media-player');
+  host.style.cssText='';
+  try{window.parent?.MCB_expandEmbeddedMedia?.()}catch(e){console.warn(e)}
  };
  const switchMedia=document.createElement('button');switchMedia.type='button';switchMedia.className='secondary mcb-mini-action';switchMedia.textContent='Switch Media ↔';switchMedia.title='Bring the other player forward';switchMedia.onclick=()=>{try{if(window.parent!==window&&typeof window.parent.MCB_switchMedia==='function'){window.parent.MCB_switchMedia();return;}}catch(e){}alert('Open a second player in the Practice Room to switch between them.')};
  const close=document.createElement('button');close.className='secondary mcb-float-audio-close mcb-mini-action';close.textContent='Close Player';close.onclick=()=>{
   // A detached player must close its PiP window and its own Class media slot.
-  if(playerPipWindow){try{playerPipWindow.close()}catch(e){}playerPipWindow=null;}
+  if(playerPipWindow){const restore=pipPlayerRestore;pipPlayerRestore=null;if(restore)restore();try{playerPipWindow.close()}catch(e){}playerPipWindow=null;}
   if(window.parent!==window){try{window.parent.postMessage({type:'MCB_V563_CLOSE'},window.location.origin);return;}catch(e){console.warn('Close message failed',e)}}
   closeMedia();$('resourcePreviewCard').hidden=true;
  };

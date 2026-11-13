@@ -213,6 +213,15 @@ function openMedia(m){
 }
 // The original V55 player is embedded. Only the top-level page can request Document PiP.
 // This function is called directly during the player's Float click, preserving user activation.
+// Expand the existing embedded player after it returns from Picture-in-Picture.
+// No requestFullscreen() here: Chrome forbids it in Document PiP and focus switches.
+window.MCB_expandEmbeddedMedia=()=>{
+ const viewer=$('viewer');
+ viewer.classList.remove('hidden','mcb-pip-active','mcb-floated','float');
+ viewer.style.left='';viewer.style.top='';viewer.style.right='';viewer.style.bottom='';
+ viewer.style.width='';viewer.style.height='';
+ mcbRaise('viewer');
+};
 window.MCB_openEmbeddedVideoPiP=async function(host, onOpened, onClosed, mediaType="video"){
  if(!window.documentPictureInPicture)throw new Error('This browser does not support Document Picture-in-Picture.');
  const pip=await window.documentPictureInPicture.requestWindow(mediaType==="audio"?{width:420,height:205}:{width:640,height:400});
