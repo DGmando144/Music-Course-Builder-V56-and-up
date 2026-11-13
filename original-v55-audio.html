@@ -1245,14 +1245,31 @@ function makeMediaViewer(file,r,host){
  const title=document.createElement('strong');title.textContent=mediaDisplayName(r.name);
  const isVideo=r.kind==='video';
  const float=document.createElement('button');float.className='secondary';float.textContent='Float Player';
- float.title=isVideo?'Open a separate always-on-top video window; drag the window between monitors and resize its edges':'Float compact MP3 controls over the PDF';
+ float.title=isVideo?'Open a separate movable video window (640 × 400); resize via window edges':'Open compact MP3 controls in a separate window over the Class';
  float.onclick=async()=>{
   if(isVideo){
    if(playerPipWindow){playerPipWindow.close();return;}
    await floatVideoInWindow(host,float);
    return;
   }
-  // Audio remains a compact draggable player over the PDF within this page.
+  // Audio uses its existing mini-player UI, but moves to a real floating Chrome window.
+  if(playerPipWindow){playerPipWindow.close();return;}
+  if(window.parent!==window && typeof window.parent.MCB_openEmbeddedVideoPiP==='function'){
+   try{
+    await window.parent.MCB_openEmbeddedVideoPiP(host,(pip,restore)=>{
+     playerPipWindow=pip;pipPlayerRestore=restore;
+     host.classList.add('floating-player','mini-media-player','pip-audio-player');
+     host.classList.remove('player-expanded','video-practice-view');
+     host.style.cssText='';float.textContent='Dock Player';
+    },()=>{
+     host.classList.remove('floating-player','mini-media-player','pip-audio-player');
+     host.style.cssText='';float.textContent='Float Player';
+     playerPipWindow=null;pipPlayerRestore=null;
+    },'audio');
+   }catch(e){alert('Audio floating window unavailable: '+e.message)}
+   return;
+  }
+  // Fallback when this player is used outside the Class page.
   const floating=!host.classList.contains('floating-player');
   if(floating){host.classList.add('floating-player','mini-media-player');host.style.left='24px';host.style.top='24px';host.style.width='min(420px, calc(100vw - 30px))';host.style.height='auto';}
   else{host.classList.remove('floating-player','mini-media-player');host.style.cssText='';}
