@@ -24,7 +24,22 @@
 .mcb-picker-list button:hover{background:#dfeaf9}
 .mcb-picker-panel .mcb-picker-topic{padding:10px 16px;color:#44566b;border-bottom:1px solid #dde5ef}
 
-</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.18 Open Second Media</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button><button id="bringFloat" class="hidden" title="Switch to the existing floating player">Switch Media ↔</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
+
+/* V56.5.19: compact PDF and embedded media reveal the Practice Room */
+.pdf-workspace:not(.hidden):not(:fullscreen){
+ inset:auto 24px 24px auto;width:min(640px,calc(100vw - 24px));
+ height:min(400px,calc(100dvh - 24px));border:1px solid #9db3cc;
+ border-radius:10px;box-shadow:0 12px 35px #0005;resize:both;overflow:hidden;
+}
+.pdf-workspace nav{cursor:move;flex-wrap:wrap}
+.viewer.mcb-custom-video:not(.hidden):not(.mcb-pip-active):not(:fullscreen){
+ inset:auto 24px 24px auto;width:min(640px,calc(100vw - 24px));
+ height:min(400px,calc(100dvh - 24px));resize:both;overflow:hidden;
+ border:1px solid #9db3cc;border-radius:10px;box-shadow:0 12px 35px #0005;
+}
+.viewer.mcb-custom-video:not(.hidden)>nav{display:flex;cursor:move}
+.viewer.mcb-custom-video>.stage{height:auto;flex:1;min-height:0}
+</style></head><body><header><h1>♫ Music Course Builder <span class="pill">V56.5.19 Float Workflow TEST</span></h1><div class="actions"><button id="save">Save As JSON</button><button id="load">Load JSON</button></div></header><main><div class="bar"><div><button id="back" class="hidden">← Back</button><h2 id="heading">Subjects</h2><div class="muted" id="crumb">Choose a Subject</div></div><div class="actions"><button class="primary" id="create">+ New Subject</button><button id="addFile" class="hidden">+ Add Files</button><button id="addYoutube" class="hidden">▶ Add YouTube</button><button id="bringFloat" class="hidden" title="Switch to the existing floating player">Switch Media ↔</button></div></div><div id="folders" class="grid"></div><div id="drop" class="drop">Drop media here to choose a Subject and Topic, or drop directly onto a Topic folder.</div><div id="media" class="grid"></div><p class="note">Local media files may need relinking after reopening a saved JSON project. YouTube links remain saved.</p></main>
 <input id="filePicker" type="file" multiple hidden accept="audio/*,video/*,.pdf,.mp3,.wav,.m4a,.ogg,.flac,.mp4,.webm,.mov"><input id="jsonPicker" type="file" hidden accept=".json,application/json">
 <dialog id="editor"><form method="dialog"><h3 id="editTitle"></h3><label id="nameLabel">Name</label><input id="editName" required><menu><button value="cancel">Cancel</button><button class="primary" id="editOk" value="ok">Save</button></menu></form></dialog>
 <dialog id="destination"><form method="dialog"><h3>Where should these files go?</h3><label>Subject</label><select id="destSubject"></select><label>Topic</label><select id="destTopic"></select><menu><button value="cancel">Cancel</button><button class="primary" value="ok">Add Files</button></menu></form></dialog>
@@ -220,7 +235,25 @@ window.addEventListener('message',event=>{
     closeViewer();
   }
 });
-window.MCB_returnToTopic=()=>{closeViewer();render();};
+window.MCB_returnToTopic=()=>{closeViewer(true);render();};
+(function(){
+ const panel=$('pdfWorkspace'),bar=panel.querySelector('nav');
+ let drag=null;
+ bar.addEventListener('pointerdown',e=>{
+  if(e.target.closest('button')||panel===document.fullscreenElement)return;
+  const r=panel.getBoundingClientRect();
+  drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:r.left,top:r.top};
+  panel.style.right='auto';panel.style.bottom='auto';
+  panel.style.left=r.left+'px';panel.style.top=r.top+'px';
+  bar.setPointerCapture(e.pointerId);
+ });
+ bar.addEventListener('pointermove',e=>{
+  if(!drag||e.pointerId!==drag.id)return;
+  panel.style.left=Math.max(0,Math.min(innerWidth-80,drag.left+e.clientX-drag.x))+'px';
+  panel.style.top=Math.max(0,Math.min(innerHeight-60,drag.top+e.clientY-drag.y))+'px';
+ });
+ ['pointerup','pointercancel'].forEach(type=>bar.addEventListener(type,()=>drag=null));
+})();
 $('pdfClose').onclick=mcbClosePDF;
 $('pdfFull').onclick=()=>{if(document.fullscreenElement===$('pdfWorkspace'))document.exitFullscreen();else $('pdfWorkspace').requestFullscreen?.().catch(e=>alert('Fullscreen unavailable: '+e.message))};
 document.addEventListener('fullscreenchange',()=>{$('pdfFull').textContent=document.fullscreenElement===$('pdfWorkspace')?'Exit Full Screen':'Full Screen'});
@@ -238,7 +271,7 @@ function mcbRestoreYouTube(frame){
 // activate it with window.open('', name) even when opener.focus() is ignored.
 if(!window.name)window.name='MCB_Practice_Room';
 function mcbShowPracticeRoom(){
- if(!$('viewer').classList.contains('mcb-pip-active'))closeViewer();
+ if(!$('viewer').classList.contains('mcb-pip-active'))closeViewer(true);
  render();
  try{window.focus()}catch(e){}
 }
