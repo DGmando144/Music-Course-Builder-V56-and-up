@@ -1026,6 +1026,35 @@ html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-stri
  flex:0 0 132px!important;margin:0!important;padding:0 5px!important;
  font-size:13px!important;line-height:20px!important;white-space:nowrap!important;
 }
+
+/* V56.5.50: MP3 Float vertical spacing only. Keep waveform at its existing
+   65px size; remove the flex spacer that separated waveform and buttons. */
+html body .pip-audio-player .media-tools.mcb-audio-transport {
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  align-items:stretch!important;
+  gap:6px!important;
+  padding:3px 5px 16px!important;
+  box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .wave-wrap {
+  flex:0 0 65px!important;
+  height:65px!important;
+  min-height:0!important;
+  max-height:65px!important;
+  order:1!important;
+  margin:0!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scroll {
+  flex:0 0 auto!important;
+  order:2!important;
+  margin-top:0!important;
+  margin-bottom:0!important;
+  padding:2px 0 3px!important;
+  min-height:0!important;
+  max-height:calc(100% - 65px)!important;
+}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
