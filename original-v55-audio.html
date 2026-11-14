@@ -943,6 +943,61 @@ html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-stri
   flex:0 0 auto!important;margin:0!important;padding:0 6px!important;
   overflow:visible!important;
 }
+
+/* V56.5.47: MP3 Float only. Chrome caps the PiP window width on some
+   displays, so place Help + numeric timecode together on a fully visible
+   second row, and remove the redundant scrollbar below transport buttons. */
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scroll {
+ width:100%!important;min-width:0!important;max-width:100%!important;
+ overflow-x:hidden!important;overflow-y:auto!important;
+ scrollbar-width:none!important;box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scroll::-webkit-scrollbar {
+ display:none!important;width:0!important;height:0!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+ display:flex!important;flex-flow:row wrap!important;align-items:flex-start!important;
+ align-content:flex-start!important;justify-content:flex-start!important;
+ width:100%!important;min-width:0!important;max-width:100%!important;
+ gap:3px!important;box-sizing:border-box!important;overflow:visible!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit {
+ flex-shrink:0!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-audio-tail {
+ display:flex!important;flex-flow:row nowrap!important;
+ align-items:center!important;justify-content:flex-end!important;
+ flex:0 0 100%!important;width:100%!important;min-width:0!important;
+ max-width:100%!important;box-sizing:border-box!important;
+ margin:2px 0 0!important;padding:0 5px!important;
+ gap:8px!important;overflow:visible!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail > .mcb-control-unit {
+ flex:0 0 29px!important;width:29px!important;min-width:29px!important;
+ max-width:29px!important;box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail .help-popover-anchor,
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail #mediaHelp {
+ width:29px!important;min-width:29px!important;max-width:29px!important;
+ height:29px!important;min-height:29px!important;max-height:29px!important;
+ box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail #mediaTimecode {
+ display:block!important;visibility:visible!important;opacity:1!important;
+ position:static!important;flex:0 0 auto!important;
+ width:132px!important;min-width:132px!important;max-width:132px!important;
+ height:29px!important;min-height:29px!important;max-height:29px!important;
+ padding:3px 5px!important;margin:0!important;box-sizing:border-box!important;
+ font-size:13px!important;line-height:23px!important;font-weight:700!important;
+ letter-spacing:0!important;font-variant-numeric:tabular-nums!important;
+ white-space:nowrap!important;overflow:visible!important;
+}
+/* Waveform extends across the available float width, without extra
+   transport timeline/scrollbar underneath. */
+html body .pip-audio-player .media-tools.mcb-audio-transport .wave-wrap {
+ width:100%!important;min-width:0!important;max-width:100%!important;
+ box-sizing:border-box!important;
+}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
