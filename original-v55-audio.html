@@ -701,6 +701,53 @@ html body .pip-audio-player .media-tools.mcb-audio-transport .wave-wrap {
 html body .pip-audio-player .media-tools.mcb-audio-transport .wave-canvas {
   height:100%!important; max-height:61px!important; min-height:0!important;
 }
+
+/* V56.5.41: MP3 Float — keep Help (?) directly after Clear Markers. */
+@container (min-width: 850px) {
+ html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+   justify-content:flex-start!important;
+ }
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-control-unit:has(#clearLoop) {
+ margin-right:0!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-control-unit:has(#mediaHelp) {
+ margin-left:0!important;
+}
+
+/* V56.5.42: keep Help immediately after Clear Markers in the MP3 Float.
+   The popup can be narrower than its requested size (browser constraints).
+   At that width fit the entire strip rather than wrap the final control. */
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+  flex-wrap:nowrap!important;
+  justify-content:flex-start!important;
+  gap:2px!important;
+  min-width:0!important;
+  width:100%!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit {
+  width:clamp(26px, 6.7cqw, 36px)!important;
+  min-width:0!important;
+  max-width:36px!important;
+  flex:0 1 clamp(26px, 6.7cqw, 36px)!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit > button,
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit > .help-popover-anchor > button {
+  width:100%!important;min-width:0!important;max-width:100%!important;
+  box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label {
+  width:clamp(35px, 8.2cqw, 46px)!important;
+  min-width:35px!important;max-width:46px!important;
+  flex:0 0 clamp(35px, 8.2cqw, 46px)!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label .speed-picker,
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed {
+  width:100%!important;min-width:0!important;max-width:100%!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit:has(#mediaHelp) {
+  margin-left:0!important;order:0!important;
+}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
