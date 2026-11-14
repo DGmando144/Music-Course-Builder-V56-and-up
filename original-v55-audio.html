@@ -1646,7 +1646,16 @@ function addMediaControls(media,r,host,file){
  }
  const visibleDuration=()=>waveDuration()/zoom;
  function clampView(){viewStart=Math.max(0,Math.min(viewStart,Math.max(0,waveDuration()-visibleDuration())))}
- function setZoom(next){const d=waveDuration();if(!d)return;const focus=Math.max(viewStart,Math.min(viewStart+visibleDuration(),media.currentTime||0));const ratio=(focus-viewStart)/visibleDuration();zoom=Math.max(1,Math.min(64,next));viewStart=focus-ratio*visibleDuration();clampView();q('waveZoomLabel').textContent=Math.round(zoom*100)+'%';paintWave()}
+ function setZoom(next){
+  const d=waveDuration();if(!d)return;
+  // V56.5.55: zoom priority is active loop midpoint, then current playhead.
+  // Keep the chosen focus at the center of the viewport, subject to file boundaries.
+  const focus=state.loop&&valid()?(state.a+state.b)/2:Math.max(0,Math.min(d,media.currentTime||0));
+  zoom=Math.max(1,Math.min(64,next));
+  viewStart=focus-visibleDuration()/2;
+  clampView();
+  q('waveZoomLabel').textContent=Math.round(zoom*100)+'%';paintWave();
+ }
  q('waveZoomIn').onclick=()=>setZoom(zoom*2);
  q('waveZoomOut').onclick=()=>setZoom(zoom/2);
  q('waveZoomFit').onclick=()=>{zoom=1;viewStart=0;q('waveZoomLabel').textContent='100%';paintWave()};
