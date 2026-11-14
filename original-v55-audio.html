@@ -611,6 +611,77 @@ html body .pip-audio-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb
 html body .floating-player.mini-media-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed {
   font-size:14px!important; font-weight:800!important; letter-spacing:-.5px!important;
 }
+
+/* V56.5.39: audio Float responsive controls, based on actual Float width,
+   not browser viewport. Preserve minimum usable tap targets and wrapping. */
+html body .pip-audio-player .media-tools.mcb-audio-transport {
+  container-type:inline-size!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+  justify-content:flex-start!important;
+  align-items:flex-start!important;
+  gap:clamp(2px, .6cqw, 5px)!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit {
+  width:clamp(29px, 7.3cqw, 43px)!important;
+  min-width:clamp(29px, 7.3cqw, 43px)!important;
+  max-width:clamp(29px, 7.3cqw, 43px)!important;
+  flex:0 0 clamp(29px, 7.3cqw, 43px)!important;
+  gap:1px!important;
+  box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit > button,
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit > .help-popover-anchor > button {
+  width:clamp(27px, 6.9cqw, 39px)!important;
+  min-width:clamp(27px, 6.9cqw, 39px)!important;
+  max-width:clamp(27px, 6.9cqw, 39px)!important;
+  height:clamp(27px, 6.9cqw, 39px)!important;
+  min-height:clamp(27px, 6.9cqw, 39px)!important;
+  max-height:clamp(27px, 6.9cqw, 39px)!important;
+  padding:2px!important;
+  border-radius:clamp(5px, 1cqw, 8px)!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit > button::before,
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit > .help-popover-anchor > button::before {
+  width:clamp(19px, 5.2cqw, 29px)!important;
+  height:clamp(19px, 5.2cqw, 29px)!important;
+  flex:0 0 clamp(19px, 5.2cqw, 29px)!important;
+  background-size:contain!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-control-label {
+  font-size:clamp(7px, 1.7cqw, 9px)!important;
+  line-height:1.1!important;
+  max-width:100%!important;
+  min-height:clamp(14px, 3.3cqw, 19px)!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .help-popover-anchor {
+  height:clamp(27px, 6.9cqw, 39px)!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label,
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label .speed-picker {
+  width:clamp(35px, 8.5cqw, 49px)!important;
+  min-width:clamp(35px, 8.5cqw, 49px)!important;
+  max-width:clamp(35px, 8.5cqw, 49px)!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label {
+  flex:0 0 clamp(35px, 8.5cqw, 49px)!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label .speed-picker,
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed {
+  height:clamp(27px, 6.9cqw, 39px)!important;
+  min-height:clamp(27px, 6.9cqw, 39px)!important;
+  max-height:clamp(27px, 6.9cqw, 39px)!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed {
+  width:clamp(35px, 8.5cqw, 49px)!important;
+  min-width:clamp(35px, 8.5cqw, 49px)!important;
+  max-width:clamp(35px, 8.5cqw, 49px)!important;
+  font-size:clamp(12px, 2.8cqw, 17px)!important;
+  padding:clamp(9px, 2.3cqw, 13px) 0 0!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label .mcb-native-speed-caption {
+  font-size:9px!important;line-height:10px!important;top:1px!important;
+}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
