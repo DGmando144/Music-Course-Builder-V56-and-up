@@ -838,6 +838,74 @@ html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-stri
   width:38px!important; min-width:38px!important; max-width:38px!important;
 }
 
+
+/* V56.5.45 — MP3 only: structural tail for Help + timecode. */
+html body .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail {
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ align-items:flex-start!important;justify-content:flex-start!important;
+ gap:8px!important;flex:0 0 auto!important;width:auto!important;
+ min-width:0!important;max-width:none!important;
+ margin:0!important;padding:0!important;overflow:visible!important;
+}
+html body .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail > .mcb-control-unit {
+ flex:0 0 68px!important;width:68px!important;min-width:68px!important;
+ max-width:68px!important;margin:0!important;
+}
+html body .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail .help-popover-anchor {
+ width:68px!important;min-width:68px!important;max-width:68px!important;
+ box-sizing:border-box!important;
+}
+html body .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail #mediaTimecode {
+ display:inline-flex!important;align-items:center!important;
+ font-size:60px!important;line-height:1.1!important;
+ font-weight:700!important;font-variant-numeric:tabular-nums!important;
+ white-space:nowrap!important;letter-spacing:-1.5px!important;
+ width:max-content!important;min-width:max-content!important;max-width:none!important;
+ height:auto!important;min-height:0!important;flex:0 0 auto!important;
+ padding:8px 12px!important;margin:0!important;position:static!important;
+ overflow:visible!important;
+}
+/* In the main MP3 view, let the large timecode occupy a separate line
+   instead of being clipped by the transport's horizontal scrolling region. */
+html body .media-tools.mcb-audio-transport:not(.unused) .media-control-scroll {
+ overflow-x:visible!important;overflow-y:visible!important;
+}
+html body .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail {
+ flex-wrap:wrap!important;
+}
+/* In MP3 Float, preserve a single unbroken tail and compact button dimensions. */
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scroll {
+ overflow-x:auto!important;overflow-y:hidden!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+ flex-flow:row nowrap!important;align-items:flex-start!important;
+ width:max-content!important;min-width:100%!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail {
+ flex-flow:row nowrap!important;align-items:flex-start!important;
+ gap:5px!important;flex:0 0 auto!important;width:auto!important;
+ min-width:0!important;max-width:none!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail > .mcb-control-unit {
+ width:29px!important;min-width:29px!important;max-width:29px!important;
+ flex:0 0 29px!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail .help-popover-anchor,
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail #mediaHelp {
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ width:29px!important;min-width:29px!important;max-width:29px!important;
+ height:29px!important;min-height:29px!important;max-height:29px!important;
+ padding:0!important;margin:0!important;box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail #mediaTimecode {
+ font-size:12px!important;line-height:29px!important;
+ font-weight:700!important;letter-spacing:0!important;
+ width:auto!important;min-width:100px!important;max-width:none!important;
+ height:29px!important;min-height:29px!important;
+ flex:0 0 auto!important;padding:0 5px!important;
+ margin:0!important;white-space:nowrap!important;
+}
+/* Keep Help and Timecode together without stretching Help. */
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
@@ -1273,6 +1341,19 @@ function addMediaControls(media,r,host,file){
    const unit=document.createElement('div');unit.className='mcb-control-unit'+(id==='speedButton'?' mcb-speed-unit':'');
    control.parentNode.insertBefore(unit,control);unit.append(control);
    const caption=document.createElement('span');caption.className='mcb-control-label';caption.textContent=label;unit.append(caption);
+ }
+ // V56.5.45: A dedicated audio-only tail keeps Help and the timecode
+ // together after Clear Markers. This avoids treating the timecode as a
+ // wrapping/scrolling control or letting Help inherit the row's flex width.
+ if(r.kind==='audio'){
+   const strip=panel.querySelector('.media-control-strip');
+   const helpUnit=panel.querySelector('#mediaHelp').closest('.mcb-control-unit');
+   const clock=panel.querySelector('#mediaTimecode');
+   const tail=document.createElement('div');
+   tail.className='mcb-audio-tail';
+   strip.appendChild(tail);
+   tail.appendChild(helpUnit);
+   tail.appendChild(clock);
  }
  const compactLabels={mediaPlayPause:'Play or pause',speedButton:'Playback speed',waveStart:'Mark In',waveEnd:'Mark Out',toggleLoop:'Toggle loop',jumpToIn:'Jump to In marker',jumpToOut:'Jump to Out marker',nudgeLeft:'Nudge playback backward 0.05 seconds',nudgeRight:'Nudge playback forward 0.05 seconds',clearLoop:'Clear markers',jumpBack:'Back 5 seconds',jumpForward:'Forward 5 seconds',mediaHelp:'Click for help'};
  for(const [id,label] of Object.entries(compactLabels)){const button=panel.querySelector('#'+id);if(button){button.title=label;button.setAttribute('aria-label',label)}}
