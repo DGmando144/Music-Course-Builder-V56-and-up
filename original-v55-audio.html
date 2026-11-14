@@ -1805,12 +1805,20 @@ function addMediaControls(media,r,host,file){
 
 let activePdfURL=null,activeMediaURL=null;
 let activePlaybackToggle=null,activePlaybackMedia=null;
-document.addEventListener('keydown',event=>{
- if(event.code!=='Space'||event.repeat||event.altKey||event.ctrlKey||event.metaKey||!activePlaybackToggle||!activePlaybackMedia?.isConnected)return;
+// Media shortcuts: capture before the browser can activate the last-focused button.
+function mcbMediaShortcuts(event){
+ const key=event.key?.toLowerCase();
+ if(![' ','i','o'].includes(key) && event.code!=='Space')return;
+ if(event.repeat||event.altKey||event.ctrlKey||event.metaKey||!activePlaybackMedia?.isConnected)return;
  const target=event.target;
- if(target?.closest?.('input,textarea,select,[contenteditable="true"],[role="textbox"]'))return;
- event.preventDefault();activePlaybackToggle();
-});
+ if(target?.closest?.('input,textarea,select,[contenteditable],[role="textbox"]'))return;
+ event.preventDefault();event.stopImmediatePropagation();
+ if(event.code==='Space'||key===' '){activePlaybackToggle?.();return;}
+ const host=activePlaybackMedia.closest('#practiceMediaPreview,#resourcePreview');
+ host?.querySelector(key==='i'?'#waveStart':'#waveEnd')?.click();
+}
+document.addEventListener('keydown',mcbMediaShortcuts,true);
+
 function closePdf(){if(document.fullscreenElement?.classList.contains('pdf-workspace'))document.exitFullscreen().catch(()=>{});if(fullscreenPlayerRestore)fullscreenPlayerRestore();$('practicePdfPreview').replaceChildren();$('resourcePdfPreview').replaceChildren();if(activePdfURL){URL.revokeObjectURL(activePdfURL);activePdfURL=null}}
 function closeMedia(){if(document.fullscreenElement?.classList.contains('media-viewer-true-fullscreen'))document.exitFullscreen().catch(()=>{});document.querySelectorAll('body > .speed-menu').forEach(el=>el.remove());document.body.classList.remove('player-expanded-open');document.querySelectorAll('.player-expanded').forEach(el=>el.classList.remove('player-expanded','video-practice-view'));activePlaybackToggle=null;activePlaybackMedia=null;if(playerPipWindow){if(pipPlayerRestore){const restore=pipPlayerRestore;pipPlayerRestore=null;restore()}playerPipWindow.close();playerPipWindow=null}for(const id of ['resourcePreview','practiceMediaPreview']){const el=$(id);el.querySelectorAll('audio,video').forEach(m=>m.pause());el.replaceChildren();el.classList.remove('floating-player','player-expanded','video-practice-view')}if(activeMediaURL){URL.revokeObjectURL(activeMediaURL);activeMediaURL=null}}
 function closePreview(){closePdf();closeMedia();$('resourcePreviewCard').hidden=true}
@@ -1882,6 +1890,7 @@ async function floatVideoInWindow(host,floatButton){
   try{
    const pip=await window.parent.MCB_openEmbeddedVideoPiP(host,(pip,restore)=>{
     playerPipWindow=pip;pipPlayerRestore=restore;
+     pip.document.addEventListener('keydown',mcbMediaShortcuts,true);
     host.classList.remove('floating-player','player-expanded','video-practice-view','mini-media-player');
     host.classList.add('pip-video-player');
     host.querySelector('.wave-wrap')?.setAttribute('aria-hidden','true');
@@ -2007,6 +2016,7 @@ function makeMediaViewer(file,r,host){
    try{
     await window.parent.MCB_openEmbeddedVideoPiP(host,(pip,restore)=>{
      playerPipWindow=pip;pipPlayerRestore=restore;
+     pip.document.addEventListener('keydown',mcbMediaShortcuts,true);
      host.classList.add('floating-player','mini-media-player','pip-audio-player');
      full.textContent='Full Screen';
      host.classList.remove('player-expanded','video-practice-view');
