@@ -748,6 +748,37 @@ html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-stri
 html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit:has(#mediaHelp) {
   margin-left:0!important;order:0!important;
 }
+
+/* V56.5.43: the floating MP3 waveform and control bar use the full
+   available window width. Keep Help and Timecode directly after Markers.
+   When Chrome constrains PiP width, scroll horizontally rather than hide. */
+html body .pip-audio-player .media-tools.mcb-audio-transport {
+ width:100%!important;max-width:none!important;box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .wave-wrap {
+ width:100%!important;max-width:none!important;box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scroll {
+ width:100%!important;max-width:none!important;
+ overflow-x:auto!important;overflow-y:hidden!important;
+ scrollbar-width:thin!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+ display:flex!important;flex-flow:row nowrap!important;
+ justify-content:flex-start!important;align-items:flex-start!important;
+ width:max-content!important;min-width:100%!important;max-width:none!important;
+ gap:3px!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit {
+ flex-shrink:0!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport #mediaTimecode {
+ display:inline-flex!important;visibility:visible!important;
+ flex:0 0 auto!important;align-self:flex-start!important;
+ white-space:nowrap!important;position:static!important;
+ margin:4px 0 0 3px!important;
+ font-size:12px!important;line-height:20px!important;
+}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */

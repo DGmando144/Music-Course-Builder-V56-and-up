@@ -234,7 +234,7 @@ window.MCB_expandEmbeddedMedia=()=>{
 };
 window.MCB_openEmbeddedVideoPiP=async function(host, onOpened, onClosed, mediaType="video"){
  if(!window.documentPictureInPicture)throw new Error('This browser does not support Document Picture-in-Picture.');
- const pip=await window.documentPictureInPicture.requestWindow(mediaType==="audio"?{width:980,height:230}:{width:640,height:400});
+ const pip=await window.documentPictureInPicture.requestWindow(mediaType==="audio"?{width:1180,height:230}:{width:640,height:400});
  const sourceDoc=host.ownerDocument;
  const anchor=sourceDoc.createComment('V55 video float return point');
  host.parentNode.insertBefore(anchor,host);
