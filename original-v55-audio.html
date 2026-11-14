@@ -1055,6 +1055,51 @@ html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scro
   min-height:0!important;
   max-height:calc(100% - 65px)!important;
 }
+
+/* V56.5.51 — MP3 Float only: grow the waveform instead of the blank gap.
+   Reserve label height and bottom padding for the transport row. */
+html body .pip-audio-player {
+ display:flex!important;flex-direction:column!important;
+ height:100%!important;min-height:0!important;box-sizing:border-box!important;
+ overflow:hidden!important;padding:4px 8px 12px!important;
+}
+html body .pip-audio-player > .media-topbar {
+ flex:0 0 auto!important;
+}
+html body .pip-audio-player > .media-tools.mcb-audio-transport {
+ display:flex!important;flex-direction:column!important;
+ flex:1 1 auto!important;height:auto!important;min-height:0!important;
+ max-height:none!important;width:100%!important;
+ justify-content:flex-start!important;align-items:stretch!important;
+ gap:6px!important;margin:0!important;padding:3px 2px 0!important;
+ overflow:hidden!important;box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport > .wave-wrap {
+ display:block!important;order:1!important;
+ flex:1 1 auto!important;height:auto!important;min-height:0!important;
+ max-height:none!important;margin:0!important;padding:2px!important;
+ overflow:hidden!important;box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .wave-canvas {
+ display:block!important;width:100%!important;height:100%!important;
+ max-height:none!important;min-height:0!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport > .media-control-scroll {
+ display:block!important;order:2!important;flex:0 0 auto!important;
+ height:auto!important;min-height:59px!important;max-height:90px!important;
+ margin:0!important;padding:2px 0 8px!important;
+ overflow-x:hidden!important;overflow-y:visible!important;
+ box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+ align-items:flex-start!important;align-content:flex-start!important;
+ min-height:53px!important;padding-bottom:4px!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-control-label {
+ display:block!important;visibility:visible!important;
+ min-height:20px!important;line-height:1.15!important;
+ overflow:visible!important;
+}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
