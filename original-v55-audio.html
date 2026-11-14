@@ -1100,13 +1100,6 @@ html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-stri
  min-height:20px!important;line-height:1.15!important;
  overflow:visible!important;
 }
-
-/* V56.5.62: Speed menu wheel navigation; click alone commits. */
-html body .speed-picker{position:relative!important;overflow:visible!important}
-html body .speed-menu.mcb-speed-wheel-list{display:flex!important;flex-direction:column!important;grid-template-columns:none!important;position:absolute!important;left:0!important;right:auto!important;bottom:calc(100% + 5px)!important;top:auto!important;transform:none!important;min-width:88px!important;width:100px!important;max-height:155px!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;padding:4px!important;gap:2px!important;z-index:2147483647!important;pointer-events:auto!important;background:#fff!important;color:#15243a!important}
-html body .speed-menu.mcb-speed-wheel-list[hidden]{display:none!important}
-html body .speed-menu.mcb-speed-wheel-list button{display:block!important;flex:0 0 auto!important;min-height:29px!important;width:100%!important;color:#15243a!important;background:#eef3f8!important;padding:5px!important;text-align:center!important;white-space:nowrap!important}
-html body .speed-menu.mcb-speed-wheel-list button[aria-selected=true]{background:#195c91!important;color:#fff!important}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
@@ -1572,44 +1565,28 @@ function addMediaControls(media,r,host,file){
  const speeds=[.25,.5,.65,.75,.85,1,1.25,1.5,2];
  const speedButton=q('speedButton'),speedMenu=q('speedMenu');
  if(r.kind==='audio')speedButton.closest('.mcb-speed-unit')?.classList.add('mcb-audio-speed-label');
- // V56.5.62: Scrollable custom speed list. Wheel browses, click commits.
- // No native select/showPicker focus persistence or wheel-triggered dismissal.
+ // V56.5.33: Use a native select for speed. Custom popovers were clipped or
+ // intercepted in the embedded/mini/PiP player documents. Native menus are
+ // browser-managed and work in all three window contexts.
+ const speedSelect=document.createElement('select');
+ speedSelect.id='speedButton';speedSelect.className='secondary mcb-native-speed';
+ speedSelect.setAttribute('aria-label','Playback speed');
+ speedSelect.title='Playback speed';
+ // V56.5.35: restore visible SPEED caption without replacing the working native select.
  const speedCaption=document.createElement('span');speedCaption.className='mcb-native-speed-caption';speedCaption.textContent='Speed';
+ speedSelect.setAttribute('aria-labelledby','mcbSpeedCaption');speedCaption.id='mcbSpeedCaption';
  speedButton.parentNode.insertBefore(speedCaption,speedButton);
- speedButton.setAttribute('aria-controls','speedMenu');
- speedButton.setAttribute('aria-haspopup','true');
- speedMenu.setAttribute('role','listbox');
- speedMenu.setAttribute('aria-label','Playback speeds');
- speedMenu.classList.add('mcb-speed-wheel-list');
- // V56.5.63: place the list in the owning document's top layer, outside
- // scroll/clipping containers. Capture wheel before other player handlers.
- const speedDoc=panel.ownerDocument;
- const speedHome=speedMenu.parentNode;
- speedDoc.body.appendChild(speedMenu);
- let speedWheelPosition=0;
- function closeSpeed(){speedMenu.hidden=true;speedMenu.classList.remove('mcb-speed-open');speedButton.setAttribute('aria-expanded','false');speedButton.blur();}
- function showSpeed(){speedButton.textContent=speed+'× ▾';for(const opt of speedMenu.children)opt.setAttribute('aria-selected',String(Number(opt.dataset.rate)===speed));}
  for(const value of speeds){
-  const option=speedDoc.createElement('button');option.type='button';option.className='secondary';option.setAttribute('role','option');option.dataset.rate=String(value);option.textContent=value+'×';
-  option.addEventListener('click',()=>{speed=value;media.playbackRate=speed;setPitchCorrection(true);showSpeed();save();closeSpeed();});
-  speedMenu.append(option);
+  const option=document.createElement('option');option.value=String(value);
+  option.textContent=value+'×';speedSelect.append(option);
  }
- function placeSpeed(){const rect=speedButton.getBoundingClientRect();const h=speedMenu.offsetHeight||155;const below=rect.bottom+5;const top=below+h<=speedDoc.documentElement.clientHeight?below:Math.max(5,rect.top-h-5);speedMenu.style.setProperty('position','fixed','important');speedMenu.style.setProperty('top',top+'px','important');speedMenu.style.setProperty('bottom','auto','important');speedMenu.style.setProperty('left',Math.max(4,Math.min(rect.left,speedDoc.documentElement.clientWidth-105))+'px','important');}
- function openSpeed(){speedMenu.hidden=false;speedMenu.classList.add('mcb-speed-open');speedButton.setAttribute('aria-expanded','true');placeSpeed();const selected=[...speedMenu.children].find(x=>Number(x.dataset.rate)===speed);if(selected)speedMenu.scrollTop=selected.offsetTop-speedMenu.offsetTop-speedMenu.clientHeight/2+selected.clientHeight/2;speedWheelPosition=speedMenu.scrollTop;}
- speedButton.addEventListener('click',()=>speedMenu.hidden?openSpeed():closeSpeed());
- // A wheel event never commits a speed, dismisses the list, or changes focus.
- // Capturing at document level also handles events that target the trigger
- // or a surrounding player surface instead of the popup itself.
- speedDoc.addEventListener('wheel',e=>{
-  if(speedMenu.hidden||!speedButton.isConnected)return;
-  const inPlayer=host.contains(e.target)||speedMenu.contains(e.target)||e.target===speedButton;
-  if(!inPlayer)return;
-  e.preventDefault();e.stopImmediatePropagation();
-  const delta=e.deltaMode===1?e.deltaY*28:e.deltaMode===2?e.deltaY*100:e.deltaY;
-  speedWheelPosition=Math.max(0,Math.min(speedMenu.scrollHeight-speedMenu.clientHeight,speedWheelPosition+delta));
-  speedMenu.scrollTop=speedWheelPosition;
- },{capture:true,passive:false});
- speedDoc.addEventListener('pointerdown',e=>{if(!speedMenu.hidden&&!speedMenu.contains(e.target)&&e.target!==speedButton)closeSpeed();},true);
+ speedButton.replaceWith(speedSelect);
+ speedMenu.remove();
+ function showSpeed(){speedSelect.value=String(speed);speedSelect.dataset.speed=speed+'×';}
+ speedSelect.addEventListener('change',()=>{
+  speed=Number(speedSelect.value)||1;
+  media.playbackRate=speed;setPitchCorrection(true);showSpeed();save();
+ });
  showSpeed();
  function setPitchCorrection(on){for(const key of ['preservesPitch','mozPreservesPitch','webkitPreservesPitch']){if(key in media)try{media[key]=on}catch(e){}}}
  setPitchCorrection(true);
@@ -1852,7 +1829,7 @@ function mcbMediaShortcuts(event){
  const target=event.target;
  if(target?.closest?.('input,textarea,[contenteditable],[role="textbox"]'))return;
  if(target?.closest?.('select') && target.id!=='speedButton')return;
- if(target?.id==='speedButton' && key==='s'){event.preventDefault();event.stopImmediatePropagation();return;} // S does not toggle an already-focused speed trigger
+ if(target?.id==='speedButton' && key==='s'){event.preventDefault();event.stopImmediatePropagation();return;} // S must not reopen an already-focused native selector
  event.preventDefault();event.stopImmediatePropagation();
  if(target?.id==='speedButton')target.blur();
  if(space){activePlaybackToggle?.();return;}
@@ -1860,6 +1837,7 @@ function mcbMediaShortcuts(event){
  const host=activePlaybackMedia.closest('#practiceMediaPreview,#resourcePreview');
  const control=host?.querySelector('#'+map[key]);
  if(!control)return;
+ if(key==='s'&&control.tagName==='SELECT'){control.focus();try{control.showPicker()}catch(err){control.click()}return;}
  control.click();
 }
 document.addEventListener('keydown',mcbMediaShortcuts,true);
