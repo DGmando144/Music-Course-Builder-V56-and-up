@@ -462,6 +462,36 @@ html body:not(.pip-audio-player) .media-tools .mcb-speed-unit .speed-picker{heig
 html body:not(.pip-audio-player) .media-tools .mcb-speed-unit select#speedButton.mcb-native-speed{height:48px!important;min-height:30px!important;font-size:18px!important}
 .floating-player.mini-media-player .media-tools .mcb-speed-unit .mcb-native-speed-caption,.pip-audio-player .media-tools .mcb-speed-unit .mcb-native-speed-caption{font-size:9px!important;line-height:10px!important}
 .floating-player.mini-media-player .media-tools .mcb-speed-unit select#speedButton.mcb-native-speed,.pip-audio-player .media-tools .mcb-speed-unit select#speedButton.mcb-native-speed{font-size:12px!important;min-height:18px!important}
+/* V56.5.36: Audio-only speed caption: earlier 35px compact layouts clipped
+   the stacked caption. Overlay the caption at the top of the select and
+   reserve room for it inside the native dropdown; keep the arrow clickable. */
+.media-tools .mcb-speed-unit.mcb-audio-speed-label .speed-picker{
+  position:relative!important;display:block!important;height:48px!important;
+  min-height:48px!important;overflow:visible!important;
+}
+.media-tools .mcb-speed-unit.mcb-audio-speed-label .mcb-native-speed-caption{
+  display:block!important;visibility:visible!important;opacity:1!important;
+  position:absolute!important;top:3px!important;left:3px!important;right:3px!important;
+  z-index:3!important;height:14px!important;line-height:14px!important;
+  color:#18375d!important;font-size:12px!important;font-weight:900!important;
+  text-align:center!important;pointer-events:none!important;
+}
+html body .media-tools .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed{
+  display:block!important;position:relative!important;width:100%!important;
+  min-width:0!important;max-width:100%!important;height:48px!important;
+  min-height:48px!important;padding:18px 3px 2px!important;
+  font-size:15px!important;line-height:normal!important;
+  appearance:menulist!important;-webkit-appearance:menulist!important;
+  color:#18375d!important;cursor:pointer!important;
+}
+.floating-player.mini-media-player .media-tools .mcb-speed-unit.mcb-audio-speed-label .speed-picker,
+.pip-audio-player .media-tools .mcb-speed-unit.mcb-audio-speed-label .speed-picker{height:40px!important;min-height:40px!important}
+html body .floating-player.mini-media-player .media-tools .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed,
+html body .pip-audio-player .media-tools .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed{
+  height:40px!important;min-height:40px!important;padding-top:15px!important;font-size:12px!important;
+}
+.floating-player.mini-media-player .media-tools .mcb-speed-unit.mcb-audio-speed-label .mcb-native-speed-caption,
+.pip-audio-player .media-tools .mcb-speed-unit.mcb-audio-speed-label .mcb-native-speed-caption{font-size:10px!important;top:2px!important}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
@@ -912,6 +942,7 @@ function addMediaControls(media,r,host,file){
  if(![.25,.5,.65,.75,.85,1,1.25,1.5,2].includes(speed))speed=1;
  const speeds=[.25,.5,.65,.75,.85,1,1.25,1.5,2];
  const speedButton=q('speedButton'),speedMenu=q('speedMenu');
+ if(r.kind==='audio')speedButton.closest('.mcb-speed-unit')?.classList.add('mcb-audio-speed-label');
  // V56.5.33: Use a native select for speed. Custom popovers were clipped or
  // intercepted in the embedded/mini/PiP player documents. Native menus are
  // browser-managed and work in all three window contexts.
