@@ -779,6 +779,65 @@ html body .pip-audio-player .media-tools.mcb-audio-transport #mediaTimecode {
  margin:4px 0 0 3px!important;
  font-size:12px!important;line-height:20px!important;
 }
+
+/* V56.5.44: MP3 only — large-view timecode and compact Float tail controls. */
+html body .media-tools.mcb-audio-transport:not(.unused) #mediaTimecode {
+  font-size:60px!important; line-height:1.1!important;
+  padding:8px 12px!important; font-weight:700!important;
+  letter-spacing:-1.5px!important; white-space:nowrap!important;
+  height:auto!important; width:auto!important;
+  max-width:none!important; flex:0 0 auto!important;
+}
+/* Keep five-times type only in the main player. */
+html body .pip-audio-player .media-tools.mcb-audio-transport #mediaTimecode,
+html body .floating-player.mini-media-player .media-tools.mcb-audio-transport #mediaTimecode {
+  font-size:12px!important; line-height:30px!important;
+  padding:0 4px!important; margin:0!important;
+  letter-spacing:0!important; font-weight:700!important;
+  width:102px!important; min-width:102px!important; max-width:102px!important;
+  height:30px!important; min-height:30px!important;
+  flex:0 0 102px!important; box-sizing:border-box!important;
+  position:static!important; white-space:nowrap!important;
+}
+/* The floating window is narrower than the width requested by the opener.
+   Make the full strip fit; never stretch the Help anchor over Clear Markers. */
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scroll {
+  width:100%!important; overflow-x:auto!important; overflow-y:hidden!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+  display:flex!important; flex-flow:row nowrap!important;
+  justify-content:flex-start!important; align-items:flex-start!important;
+  width:max-content!important; min-width:100%!important;
+  gap:2px!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit:not(.mcb-speed-unit) {
+  width:27px!important; min-width:27px!important; max-width:27px!important;
+  flex:0 0 27px!important; margin:0!important; padding:0!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit:not(.mcb-speed-unit) > button,
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit:not(.mcb-speed-unit) > .help-popover-anchor > button {
+  width:27px!important; min-width:27px!important; max-width:27px!important;
+  height:29px!important; min-height:29px!important; max-height:29px!important;
+  box-sizing:border-box!important; margin:0!important; padding:1px!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-control-unit:has(#mediaHelp) {
+  width:27px!important; min-width:27px!important; max-width:27px!important;
+  flex:0 0 27px!important; order:0!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-control-unit:has(#mediaHelp) .help-popover-anchor {
+  width:27px!important; min-width:27px!important; max-width:27px!important;
+  height:29px!important; min-height:29px!important; max-height:29px!important;
+  display:block!important; flex:none!important; position:relative!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label {
+  width:38px!important; min-width:38px!important; max-width:38px!important;
+  flex:0 0 38px!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label .speed-picker,
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed {
+  width:38px!important; min-width:38px!important; max-width:38px!important;
+}
+
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
