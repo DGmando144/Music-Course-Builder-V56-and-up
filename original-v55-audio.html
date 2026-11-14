@@ -575,6 +575,42 @@ html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scro
   margin-top:auto!important;
 }
 
+
+/* V56.5.38: MP3-only responsive controls. All buttons stay reachable. */
+html body .pip-audio-player .media-tools.mcb-audio-transport {
+  display:flex!important; flex-direction:column!important; min-height:0!important;
+  height:100%!important; width:100%!important; overflow:hidden!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scroll {
+  order:2!important; display:block!important; flex:0 0 auto!important;
+  width:100%!important; height:auto!important; max-height:100%!important;
+  overflow-x:hidden!important; overflow-y:auto!important;
+  margin-top:auto!important; padding:3px!important;
+  box-sizing:border-box!important; position:relative!important; z-index:3!important;
+  background:inherit!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+  display:flex!important; flex-flow:row wrap!important; align-items:flex-start!important;
+  align-content:flex-start!important; justify-content:center!important;
+  width:100%!important; min-width:0!important; max-width:100%!important;
+  gap:4px!important; height:auto!important; box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-control-unit {
+  flex:0 0 auto!important; min-width:0!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .wave-wrap {
+  order:1!important; flex:1 1 auto!important; min-height:0!important;
+  max-height:none!important; overflow:hidden!important; margin-bottom:2px!important;
+}
+/* Speed label stays the same size; enlarge the selected numeric value. */
+html body .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed {
+  font-size:23px!important; font-weight:800!important;
+  letter-spacing:-.7px!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed,
+html body .floating-player.mini-media-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed {
+  font-size:14px!important; font-weight:800!important; letter-spacing:-.5px!important;
+}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
