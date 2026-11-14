@@ -1519,6 +1519,7 @@ function addMediaControls(media,r,host,file){
  </div></div>
  <div id="mediaHelpText" class="media-help-text" role="tooltip" hidden>
  <b>Media player help</b>
+ <div class="mcb-shortcut-help"><b>Keyboard shortcuts</b><table style="width:100%;border-collapse:collapse;margin:7px 0 10px"><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>Spacebar</kbd></td><td style="padding:3px 0">Play / Pause</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>I</kbd></td><td style="padding:3px 0">Mark In</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>O</kbd></td><td style="padding:3px 0">Mark Out</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>L</kbd></td><td style="padding:3px 0">Loop On / Off</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>G</kbd></td><td style="padding:3px 0">Clear both markers</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>F</kbd></td><td style="padding:3px 0">Clear Out marker only</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>Q</kbd></td><td style="padding:3px 0">Jump to In</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>W</kbd></td><td style="padding:3px 0">Jump to Out</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>,</kbd></td><td style="padding:3px 0">Nudge backward 0.05 seconds</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>.</kbd></td><td style="padding:3px 0">Nudge forward 0.05 seconds</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>M</kbd></td><td style="padding:3px 0">Back 5 seconds</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>/</kbd></td><td style="padding:3px 0">Forward 5 seconds</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>S</kbd></td><td style="padding:3px 0">Open Speed selector</td></tr><tr><td style="padding:3px 12px 3px 0;white-space:nowrap"><kbd>F1</kbd></td><td style="padding:3px 0">Help</td></tr></table><p>Shortcuts are disabled while typing in text fields or selecting options.</p></div>
  <p><b>Play/Pause:</b> Click Play/Pause or press the spacebar when not typing. </p>
  <p><b>Zoom:</b> Use + Zoom to zoom around the playhead, − Zoom to zoom out, Fit All for the complete recording, and the mouse wheel to scroll horizontally while zoomed. Some video codecs cannot be analyzed directly in Chrome.</p>
  <p><b>Waveform:</b> Click to seek. Drag across the waveform to scrub. Hold Shift and drag to select a loop, or Shift-drag the blue In or orange Out marker to fine-tune the selection. Alternatively, seek and click Mark In or Mark Out to place a marker at the playhead.</p>
@@ -1585,8 +1586,9 @@ function addMediaControls(media,r,host,file){
  speedSelect.addEventListener('change',()=>{
   speed=Number(speedSelect.value)||1;
   media.playbackRate=speed;setPitchCorrection(true);showSpeed();save();
-  // Return keyboard control to the player after choosing a speed.
-  speedSelect.blur();
+  // Close the native speed picker after a committed choice (click or mouse wheel).
+  // Defer blur until the browser has applied the selection, preserving mouse interaction.
+  requestAnimationFrame(()=>{if(speedSelect.isConnected) speedSelect.blur();});
  });
  showSpeed();
  function setPitchCorrection(on){for(const key of ['preservesPitch','mozPreservesPitch','webkitPreservesPitch']){if(key in media)try{media[key]=on}catch(e){}}}
@@ -1830,7 +1832,7 @@ function mcbMediaShortcuts(event){
  const target=event.target;
  if(target?.closest?.('input,textarea,[contenteditable],[role="textbox"]'))return;
  if(target?.closest?.('select') && target.id!=='speedButton')return;
- if(target?.id==='speedButton' && key==='s')return; // avoid reopening the picker
+ if(target?.id==='speedButton' && key==='s'){event.preventDefault();event.stopImmediatePropagation();target.blur();return;} // S never reopens a focused picker
  event.preventDefault();event.stopImmediatePropagation();
  if(target?.id==='speedButton')target.blur();
  if(space){activePlaybackToggle?.();return;}
