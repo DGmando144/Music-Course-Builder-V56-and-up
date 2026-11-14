@@ -1736,6 +1736,7 @@ function addMediaControls(media,r,host,file){
  canvas.addEventListener('pointercancel',()=>{if(videoScrubTimer!==null){clearTimeout(videoScrubTimer);videoScrubTimer=null}videoScrubPending=null;if(waveDrag==='scrub'&&scrubWasPaused&&scrubStartedPlayback)media.pause();finishScrubAudio();waveDrag=null;dragStart=null;draw()});
  q('waveStart').onclick=()=>{loopNavigationOverride=false;state.a=media.currentTime;if(state.b!==null&&state.b<=state.a){state.b=null;state.loop=false}save();draw()};
  q('waveEnd').onclick=()=>{loopNavigationOverride=false;state.b=media.currentTime;if(state.a!==null&&state.b<=state.a)state.loop=false;save();draw()};
+ activeClearOut=()=>{state.b=null;state.loop=false;loopNavigationOverride=false;save();draw()};
  // V45: Restore the original V37/V39 full-file decoding path for videos.
  // Decode only on opening the file, not when floating, docking or resizing.
  // No FFmpeg download or companion audio file is required.
@@ -1804,23 +1805,31 @@ function addMediaControls(media,r,host,file){
 }
 
 let activePdfURL=null,activeMediaURL=null;
-let activePlaybackToggle=null,activePlaybackMedia=null;
+let activePlaybackToggle=null,activePlaybackMedia=null,activeClearOut=null;
 // Media shortcuts: capture before the browser can activate the last-focused button.
 function mcbMediaShortcuts(event){
  const key=event.key?.toLowerCase();
- if(![' ','i','o'].includes(key) && event.code!=='Space')return;
+ const map={i:'waveStart',o:'waveEnd',l:'toggleLoop',g:'clearLoop',q:'jumpToIn',w:'jumpToOut',
+   '3':'nudgeLeft','4':'nudgeRight','1':'jumpBack','2':'jumpForward',f:'__clearOut',s:'speedButton',f1:'mediaHelp'};
+ const space=event.code==='Space'||key===' ';
+ if(!space&&!Object.prototype.hasOwnProperty.call(map,key))return;
  if(event.repeat||event.altKey||event.ctrlKey||event.metaKey||!activePlaybackMedia?.isConnected)return;
- const target=event.target;
- if(target?.closest?.('input,textarea,select,[contenteditable],[role="textbox"]'))return;
+ if(event.target?.closest?.('input,textarea,select,[contenteditable],[role="textbox"]'))return;
  event.preventDefault();event.stopImmediatePropagation();
- if(event.code==='Space'||key===' '){activePlaybackToggle?.();return;}
+ if(space){activePlaybackToggle?.();return;}
+ if(key==='f'){activeClearOut?.();return;}
  const host=activePlaybackMedia.closest('#practiceMediaPreview,#resourcePreview');
- host?.querySelector(key==='i'?'#waveStart':'#waveEnd')?.click();
+ const control=host?.querySelector('#'+map[key]);
+ if(!control)return;
+ if(key==='s'&&control.tagName==='SELECT'){
+   control.focus();try{control.showPicker()}catch(err){control.click()}return;
+ }
+ control.click();
 }
 document.addEventListener('keydown',mcbMediaShortcuts,true);
 
 function closePdf(){if(document.fullscreenElement?.classList.contains('pdf-workspace'))document.exitFullscreen().catch(()=>{});if(fullscreenPlayerRestore)fullscreenPlayerRestore();$('practicePdfPreview').replaceChildren();$('resourcePdfPreview').replaceChildren();if(activePdfURL){URL.revokeObjectURL(activePdfURL);activePdfURL=null}}
-function closeMedia(){if(document.fullscreenElement?.classList.contains('media-viewer-true-fullscreen'))document.exitFullscreen().catch(()=>{});document.querySelectorAll('body > .speed-menu').forEach(el=>el.remove());document.body.classList.remove('player-expanded-open');document.querySelectorAll('.player-expanded').forEach(el=>el.classList.remove('player-expanded','video-practice-view'));activePlaybackToggle=null;activePlaybackMedia=null;if(playerPipWindow){if(pipPlayerRestore){const restore=pipPlayerRestore;pipPlayerRestore=null;restore()}playerPipWindow.close();playerPipWindow=null}for(const id of ['resourcePreview','practiceMediaPreview']){const el=$(id);el.querySelectorAll('audio,video').forEach(m=>m.pause());el.replaceChildren();el.classList.remove('floating-player','player-expanded','video-practice-view')}if(activeMediaURL){URL.revokeObjectURL(activeMediaURL);activeMediaURL=null}}
+function closeMedia(){if(document.fullscreenElement?.classList.contains('media-viewer-true-fullscreen'))document.exitFullscreen().catch(()=>{});document.querySelectorAll('body > .speed-menu').forEach(el=>el.remove());document.body.classList.remove('player-expanded-open');document.querySelectorAll('.player-expanded').forEach(el=>el.classList.remove('player-expanded','video-practice-view'));activePlaybackToggle=null;activePlaybackMedia=null;activeClearOut=null;if(playerPipWindow){if(pipPlayerRestore){const restore=pipPlayerRestore;pipPlayerRestore=null;restore()}playerPipWindow.close();playerPipWindow=null}for(const id of ['resourcePreview','practiceMediaPreview']){const el=$(id);el.querySelectorAll('audio,video').forEach(m=>m.pause());el.replaceChildren();el.classList.remove('floating-player','player-expanded','video-practice-view')}if(activeMediaURL){URL.revokeObjectURL(activeMediaURL);activeMediaURL=null}}
 function closePreview(){closePdf();closeMedia();$('resourcePreviewCard').hidden=true}
 $('closeResourcePreview').onclick=closePreview;
 let fullscreenPlayerRestore=null;
