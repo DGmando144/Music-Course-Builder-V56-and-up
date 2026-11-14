@@ -492,6 +492,89 @@ html body .pip-audio-player .media-tools .mcb-speed-unit.mcb-audio-speed-label s
 }
 .floating-player.mini-media-player .media-tools .mcb-speed-unit.mcb-audio-speed-label .mcb-native-speed-caption,
 .pip-audio-player .media-tools .mcb-speed-unit.mcb-audio-speed-label .mcb-native-speed-caption{font-size:10px!important;top:2px!important}
+
+/* V56.5.37 — MP3-only control sizing and responsive floating timeline.
+   The native select remains intact; these rules change only presentation. */
+html body .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label {
+  min-width:70px!important; width:70px!important; flex:0 0 70px!important;
+}
+html body .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label .speed-picker {
+  width:68px!important; height:68px!important; min-height:68px!important;
+  box-sizing:border-box!important;
+}
+html body .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label .mcb-native-speed-caption {
+  top:10px!important; font-size:12px!important; line-height:15px!important;
+}
+html body .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed {
+  width:68px!important; min-width:68px!important; max-width:68px!important;
+  height:68px!important; min-height:68px!important; max-height:68px!important;
+  padding:25px 2px 4px!important; font-size:15px!important;
+  border-radius:13px!important;
+}
+/* The compact MP3 float uses the same height as the other compact buttons. */
+html body .floating-player.mini-media-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label,
+html body .pip-audio-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label {
+  width:38px!important; min-width:38px!important; max-width:38px!important;
+  flex:0 0 38px!important;
+}
+html body .floating-player.mini-media-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label .speed-picker,
+html body .pip-audio-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label .speed-picker {
+  width:38px!important; height:30px!important; min-height:30px!important;
+}
+html body .floating-player.mini-media-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label .mcb-native-speed-caption,
+html body .pip-audio-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label .mcb-native-speed-caption {
+  top:1px!important; left:0!important; right:0!important;
+  font-size:9px!important; line-height:10px!important;
+}
+html body .floating-player.mini-media-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed,
+html body .pip-audio-player .media-tools.mcb-audio-transport .mcb-speed-unit.mcb-audio-speed-label select#speedButton.mcb-native-speed {
+  width:38px!important; min-width:38px!important; max-width:38px!important;
+  height:30px!important; min-height:30px!important; max-height:30px!important;
+  padding:10px 0 0!important; font-size:10px!important; border-radius:6px!important;
+}
+/* Floating MP3: use all available horizontal width, keeping controls in one row.
+   When too narrow, scroll the row rather than wrapping after Nudge -. */
+html body .pip-audio-player .media-tools.mcb-audio-transport {
+  position:relative!important; display:flex!important; flex-direction:column!important;
+  width:100%!important; flex:1 1 auto!important; min-height:0!important;
+  height:auto!important; overflow:hidden!important; box-sizing:border-box!important;
+  padding:3px!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scroll {
+  position:relative!important; z-index:2!important; flex:0 0 auto!important;
+  display:block!important; width:100%!important; height:auto!important;
+  max-height:none!important; min-height:0!important; overflow-x:auto!important;
+  overflow-y:hidden!important; box-sizing:border-box!important;
+  padding:2px 0 1px!important; margin:0!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+  display:flex!important; flex-flow:row nowrap!important;
+  align-items:flex-start!important; justify-content:flex-start!important;
+  width:max-content!important; min-width:100%!important; height:auto!important;
+  gap:3px!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-control-unit {
+  flex-shrink:0!important;
+}
+/* Timeline fills the vertical area ABOVE the pinned transport. On short
+   windows the timeline is covered/clipped, not the buttons. */
+html body .pip-audio-player .media-tools.mcb-audio-transport .wave-wrap {
+  display:block!important; order:-1!important; flex:1 1 auto!important;
+  min-height:0!important; overflow:hidden!important; margin:0 0 3px!important;
+  padding:4px!important; box-sizing:border-box!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .wave-canvas {
+  display:block!important; width:100%!important; height:100%!important;
+  min-height:0!important; max-height:none!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .wave-zoom-controls,
+html body .pip-audio-player .media-tools.mcb-audio-transport .wave-help {
+  display:none!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scroll {
+  margin-top:auto!important;
+}
+
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
@@ -889,7 +972,7 @@ async function removeResourceFromPractice(id){const it=selectedItem();if(it?.lin
 let previewURL=null;
 function mediaTime(t){if(!Number.isFinite(t))return '--:--';const m=Math.floor(t/60),sec=Math.floor(t%60);return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')}
 function addMediaControls(media,r,host,file){
- const panel=document.createElement('div');panel.className='media-tools';
+ const panel=document.createElement('div');panel.className='media-tools'+(r.kind==='audio'?' mcb-audio-transport':'');
  panel.innerHTML=`
  <div class="wave-wrap"><canvas class="wave-canvas" id="waveCanvas" height="130" aria-label="Audio waveform and loop markers"></canvas><div class="wave-zoom-controls"><button type="button" class="secondary" id="waveZoomOut" title="Zoom out">− Zoom</button><button type="button" class="secondary" id="waveZoomIn" title="Zoom around playhead">+ Zoom</button><button type="button" class="secondary" id="waveZoomFit" title="Show the entire recording">Fit All</button><span id="waveZoomLabel">100%</span></div><div id="waveInfo" class="wave-help" aria-live="polite">Analyzing waveform… Drag to scrub; hold Shift and drag to select or adjust loop markers.</div></div>
  <div class="media-control-scroll" aria-label="Media playback controls"><div class="media-control-strip">
