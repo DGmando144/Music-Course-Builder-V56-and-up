@@ -1585,6 +1585,8 @@ function addMediaControls(media,r,host,file){
  speedSelect.addEventListener('change',()=>{
   speed=Number(speedSelect.value)||1;
   media.playbackRate=speed;setPitchCorrection(true);showSpeed();save();
+  // Return keyboard control to the player after choosing a speed.
+  speedSelect.blur();
  });
  showSpeed();
  function setPitchCorrection(on){for(const key of ['preservesPitch','mozPreservesPitch','webkitPreservesPitch']){if(key in media)try{media[key]=on}catch(e){}}}
@@ -1810,12 +1812,18 @@ let activePlaybackToggle=null,activePlaybackMedia=null,activeClearOut=null;
 function mcbMediaShortcuts(event){
  const key=event.key?.toLowerCase();
  const map={i:'waveStart',o:'waveEnd',l:'toggleLoop',g:'clearLoop',q:'jumpToIn',w:'jumpToOut',
-   '3':'nudgeLeft','4':'nudgeRight','1':'jumpBack','2':'jumpForward',f:'__clearOut',s:'speedButton',f1:'mediaHelp'};
+   ',':'nudgeLeft','.':'nudgeRight',m:'jumpBack','/':'jumpForward',f:'__clearOut',s:'speedButton',f1:'mediaHelp'};
  const space=event.code==='Space'||key===' ';
  if(!space&&!Object.prototype.hasOwnProperty.call(map,key))return;
  if(event.repeat||event.altKey||event.ctrlKey||event.metaKey||!activePlaybackMedia?.isConnected)return;
- if(event.target?.closest?.('input,textarea,select,[contenteditable],[role="textbox"]'))return;
+ // The native speed picker retains focus after selection in some browsers.
+ // Treat a closed speed select as a shortcut origin, not a text-entry field.
+ const target=event.target;
+ if(target?.closest?.('input,textarea,[contenteditable],[role="textbox"]'))return;
+ if(target?.closest?.('select') && target.id!=='speedButton')return;
+ if(target?.id==='speedButton' && key==='s')return; // avoid reopening the picker
  event.preventDefault();event.stopImmediatePropagation();
+ if(target?.id==='speedButton')target.blur();
  if(space){activePlaybackToggle?.();return;}
  if(key==='f'){activeClearOut?.();return;}
  const host=activePlaybackMedia.closest('#practiceMediaPreview,#resourcePreview');
