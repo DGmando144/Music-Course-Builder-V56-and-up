@@ -682,6 +682,25 @@ html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-stri
 html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-speed-unit.mcb-audio-speed-label .mcb-native-speed-caption {
   font-size:9px!important;line-height:10px!important;top:1px!important;
 }
+
+/* V56.5.40: MP3 Float opens wide enough for a single transport row.
+   Responsive wrapping from V56.5.39 remains when user narrows window. */
+@container (min-width: 850px) {
+ html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+   flex-wrap:nowrap!important; justify-content:space-between!important;
+ }
+}
+/* Half-height floating waveform at its normal displayed size (130px -> 65px).
+   Waveform can shrink further as the Float is shortened; transport has priority. */
+html body .pip-audio-player .media-tools.mcb-audio-transport .wave-wrap {
+  max-height:65px!important; min-height:0!important;
+  height:auto!important; flex:1 1 65px!important;
+  padding:2px!important; margin:0 0 2px!important;
+  overflow:hidden!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .wave-canvas {
+  height:100%!important; max-height:61px!important; min-height:0!important;
+}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
