@@ -1586,9 +1586,7 @@ function addMediaControls(media,r,host,file){
  speedSelect.addEventListener('change',()=>{
   speed=Number(speedSelect.value)||1;
   media.playbackRate=speed;setPitchCorrection(true);showSpeed();save();
-  // Close the native speed picker after a committed choice (click or mouse wheel).
-  // Defer blur until the browser has applied the selection, preserving mouse interaction.
-  requestAnimationFrame(()=>{if(speedSelect.isConnected) speedSelect.blur();});
+  // Keep the native picker under mouse control; keyboard shortcuts handle focus separately.
  });
  showSpeed();
  function setPitchCorrection(on){for(const key of ['preservesPitch','mozPreservesPitch','webkitPreservesPitch']){if(key in media)try{media[key]=on}catch(e){}}}
