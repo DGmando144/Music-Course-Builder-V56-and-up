@@ -83,8 +83,18 @@ const speedToggle=$('speedToggle'),speedOptions=$('speedOptions');
 for(const opt of $('speed').options){const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=opt.textContent;b.title='Set playback speed to '+opt.textContent;b.onclick=()=>{$('speed').value=opt.value;applySpeed();speedToggle.textContent='Speed: '+opt.textContent+' ▾';speedOptions.hidden=true;speedToggle.setAttribute('aria-expanded','false')};speedOptions.appendChild(b)}
 speedToggle.onclick=()=>{speedOptions.hidden=!speedOptions.hidden;speedToggle.setAttribute('aria-expanded',String(!speedOptions.hidden))};
 // V56.5.62: wheel scrolls choices without selecting or closing; left click commits.
-speedOptions.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();speedOptions.scrollTop+=e.deltaY||0;},{passive:false});
-speedToggle.addEventListener('wheel',e=>{if(speedOptions.hidden)return;e.preventDefault();e.stopPropagation();speedOptions.scrollTop+=e.deltaY||0;},{passive:false});
+let ytSpeedScroll=0;
+// V56.5.63: capture wheel anywhere over the open player popup/transport;
+// never treat wheel movement as an outside click or a selection.
+document.addEventListener('wheel',e=>{
+ if(speedOptions.hidden)return;
+ if(!speedOptions.contains(e.target)&&!$('player').contains(e.target))return;
+ e.preventDefault();e.stopImmediatePropagation();
+ const delta=e.deltaMode===1?e.deltaY*28:e.deltaMode===2?e.deltaY*100:e.deltaY;
+ ytSpeedScroll=Math.max(0,Math.min(speedOptions.scrollHeight-speedOptions.clientHeight,ytSpeedScroll+delta));
+ speedOptions.scrollTop=ytSpeedScroll;
+},{capture:true,passive:false});
+speedToggle.addEventListener('click',()=>{ytSpeedScroll=speedOptions.scrollTop;});
 document.addEventListener('pointerdown',e=>{if(!speedOptions.contains(e.target)&&e.target!==speedToggle){speedOptions.hidden=true;speedToggle.setAttribute('aria-expanded','false')}});
 for(const [id,tip] of Object.entries({play:'Play or pause (Spacebar)',loop:'Enable or disable A–B loop',markIn:'Set the In marker',markOut:'Set the Out marker',speedToggle:'Choose playback speed',back:'Nudge left 5 seconds',forward:'Nudge right 5 seconds',clear:'Clear loop markers',helpButton:'Click for player help'})){const el=$(id);if(el)el.title=tip}
 const incomingParams=new URLSearchParams(location.search);const incomingVideo=incomingParams.get('video')||incomingParams.get('url')||incomingParams.get('youtube');if(incomingVideo){$('youtubeUrl').value=incomingVideo;if(ytId(incomingVideo)){setTimeout(loadYouTube,0)}else{status('The practice item link is not a recognized YouTube video URL. You can edit it and click Load YouTube.',true)}}if(window.parent!==window){$('closePlayer').hidden=true;$('closePlayer').style.display='none';}

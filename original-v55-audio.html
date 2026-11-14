@@ -1581,19 +1581,34 @@ function addMediaControls(media,r,host,file){
  speedMenu.setAttribute('role','listbox');
  speedMenu.setAttribute('aria-label','Playback speeds');
  speedMenu.classList.add('mcb-speed-wheel-list');
+ // V56.5.63: place the list in the owning document's top layer, outside
+ // scroll/clipping containers. Capture wheel before other player handlers.
+ const speedDoc=panel.ownerDocument;
+ const speedHome=speedMenu.parentNode;
+ speedDoc.body.appendChild(speedMenu);
+ let speedWheelPosition=0;
  function closeSpeed(){speedMenu.hidden=true;speedMenu.classList.remove('mcb-speed-open');speedButton.setAttribute('aria-expanded','false');speedButton.blur();}
  function showSpeed(){speedButton.textContent=speed+'× ▾';for(const opt of speedMenu.children)opt.setAttribute('aria-selected',String(Number(opt.dataset.rate)===speed));}
  for(const value of speeds){
-  const option=document.createElement('button');option.type='button';option.className='secondary';option.setAttribute('role','option');option.dataset.rate=String(value);option.textContent=value+'×';
+  const option=speedDoc.createElement('button');option.type='button';option.className='secondary';option.setAttribute('role','option');option.dataset.rate=String(value);option.textContent=value+'×';
   option.addEventListener('click',()=>{speed=value;media.playbackRate=speed;setPitchCorrection(true);showSpeed();save();closeSpeed();});
   speedMenu.append(option);
  }
- function openSpeed(){speedMenu.hidden=false;speedMenu.classList.add('mcb-speed-open');speedButton.setAttribute('aria-expanded','true');const selected=[...speedMenu.children].find(x=>Number(x.dataset.rate)===speed);if(selected)speedMenu.scrollTop=selected.offsetTop-speedMenu.offsetTop-speedMenu.clientHeight/2+selected.clientHeight/2;}
+ function placeSpeed(){const rect=speedButton.getBoundingClientRect();const h=speedMenu.offsetHeight||155;const below=rect.bottom+5;const top=below+h<=speedDoc.documentElement.clientHeight?below:Math.max(5,rect.top-h-5);speedMenu.style.setProperty('position','fixed','important');speedMenu.style.setProperty('top',top+'px','important');speedMenu.style.setProperty('bottom','auto','important');speedMenu.style.setProperty('left',Math.max(4,Math.min(rect.left,speedDoc.documentElement.clientWidth-105))+'px','important');}
+ function openSpeed(){speedMenu.hidden=false;speedMenu.classList.add('mcb-speed-open');speedButton.setAttribute('aria-expanded','true');placeSpeed();const selected=[...speedMenu.children].find(x=>Number(x.dataset.rate)===speed);if(selected)speedMenu.scrollTop=selected.offsetTop-speedMenu.offsetTop-speedMenu.clientHeight/2+selected.clientHeight/2;speedWheelPosition=speedMenu.scrollTop;}
  speedButton.addEventListener('click',()=>speedMenu.hidden?openSpeed():closeSpeed());
- speedMenu.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();speedMenu.scrollTop+=e.deltaY||0;},{passive:false});
- // Scrolling while over the trigger browses the open list rather than dismissing it.
- speedButton.addEventListener('wheel',e=>{if(speedMenu.hidden)return;e.preventDefault();e.stopPropagation();speedMenu.scrollTop+=e.deltaY||0;},{passive:false});
- const speedDoc=panel.ownerDocument;
+ // A wheel event never commits a speed, dismisses the list, or changes focus.
+ // Capturing at document level also handles events that target the trigger
+ // or a surrounding player surface instead of the popup itself.
+ speedDoc.addEventListener('wheel',e=>{
+  if(speedMenu.hidden||!speedButton.isConnected)return;
+  const inPlayer=host.contains(e.target)||speedMenu.contains(e.target)||e.target===speedButton;
+  if(!inPlayer)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  const delta=e.deltaMode===1?e.deltaY*28:e.deltaMode===2?e.deltaY*100:e.deltaY;
+  speedWheelPosition=Math.max(0,Math.min(speedMenu.scrollHeight-speedMenu.clientHeight,speedWheelPosition+delta));
+  speedMenu.scrollTop=speedWheelPosition;
+ },{capture:true,passive:false});
  speedDoc.addEventListener('pointerdown',e=>{if(!speedMenu.hidden&&!speedMenu.contains(e.target)&&e.target!==speedButton)closeSpeed();},true);
  showSpeed();
  function setPitchCorrection(on){for(const key of ['preservesPitch','mozPreservesPitch','webkitPreservesPitch']){if(key in media)try{media[key]=on}catch(e){}}}
