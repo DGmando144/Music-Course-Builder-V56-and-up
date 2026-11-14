@@ -1583,23 +1583,9 @@ function addMediaControls(media,r,host,file){
  speedButton.replaceWith(speedSelect);
  speedMenu.remove();
  function showSpeed(){speedSelect.value=String(speed);speedSelect.dataset.speed=speed+'×';}
- // Mouse-wheel speed selection: native Chrome select popups do not reliably
- // forward wheel events, so handle wheel input over the visible selector itself.
- speedSelect.addEventListener('wheel',event=>{
-  if(!event.deltaY)return;
-  event.preventDefault();event.stopPropagation();
-  const choices=[...speedSelect.options];
-  const currentIndex=Math.max(0,choices.findIndex(option=>option.value===speedSelect.value));
-  const nextIndex=Math.max(0,Math.min(choices.length-1,currentIndex+(event.deltaY>0?-1:1)));
-  if(nextIndex!==currentIndex){speedSelect.value=choices[nextIndex].value;speedSelect.dispatchEvent(new Event('change',{bubbles:true}));}
-  else speedSelect.blur();
- },{passive:false});
  speedSelect.addEventListener('change',()=>{
   speed=Number(speedSelect.value)||1;
   media.playbackRate=speed;setPitchCorrection(true);showSpeed();save();
-  // Close the native speed picker after a committed choice (click or mouse wheel).
-  // Defer blur until the browser has applied the selection, preserving mouse interaction.
-  requestAnimationFrame(()=>{if(speedSelect.isConnected) speedSelect.blur();});
  });
  showSpeed();
  function setPitchCorrection(on){for(const key of ['preservesPitch','mozPreservesPitch','webkitPreservesPitch']){if(key in media)try{media[key]=on}catch(e){}}}
@@ -1843,7 +1829,7 @@ function mcbMediaShortcuts(event){
  const target=event.target;
  if(target?.closest?.('input,textarea,[contenteditable],[role="textbox"]'))return;
  if(target?.closest?.('select') && target.id!=='speedButton')return;
- if(target?.id==='speedButton' && key==='s'){event.preventDefault();event.stopImmediatePropagation();target.blur();return;} // S never reopens a focused picker
+ if(target?.id==='speedButton' && key==='s'){event.preventDefault();event.stopImmediatePropagation();return;} // S must not reopen an already-focused native selector
  event.preventDefault();event.stopImmediatePropagation();
  if(target?.id==='speedButton')target.blur();
  if(space){activePlaybackToggle?.();return;}
@@ -1851,9 +1837,7 @@ function mcbMediaShortcuts(event){
  const host=activePlaybackMedia.closest('#practiceMediaPreview,#resourcePreview');
  const control=host?.querySelector('#'+map[key]);
  if(!control)return;
- if(key==='s'&&control.tagName==='SELECT'){
-   control.focus();try{control.showPicker()}catch(err){control.click()}return;
- }
+ if(key==='s'&&control.tagName==='SELECT'){control.focus();try{control.showPicker()}catch(err){control.click()}return;}
  control.click();
 }
 document.addEventListener('keydown',mcbMediaShortcuts,true);

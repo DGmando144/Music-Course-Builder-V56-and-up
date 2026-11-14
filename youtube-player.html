@@ -77,16 +77,6 @@ helpButton.addEventListener('click',()=>playerHelp.hidden?showPlayerHelp():hideP
 
 const speedToggle=$('speedToggle'),speedOptions=$('speedOptions');
 for(const opt of $('speed').options){const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=opt.textContent;b.title='Set playback speed to '+opt.textContent;b.onclick=()=>{$('speed').value=opt.value;applySpeed();speedToggle.textContent='Speed: '+opt.textContent+' ▾';speedOptions.hidden=true;speedToggle.setAttribute('aria-expanded','false')};speedOptions.appendChild(b)}
-// Mouse wheel over the open speed choices selects the adjacent speed and closes.
-speedOptions.addEventListener('wheel',e=>{
- if(speedOptions.hidden||!e.deltaY)return;
- e.preventDefault();e.stopPropagation();
- const buttons=[...speedOptions.querySelectorAll('button')];
- const currentIndex=Math.max(0,buttons.findIndex(b=>b.textContent===$('speed').selectedOptions[0]?.textContent));
- const nextIndex=Math.max(0,Math.min(buttons.length-1,currentIndex+(e.deltaY>0?-1:1)));
- if(nextIndex!==currentIndex)buttons[nextIndex].click();
- else {speedOptions.hidden=true;speedToggle.setAttribute('aria-expanded','false')}
-},{passive:false});
 speedToggle.onclick=()=>{speedOptions.hidden=!speedOptions.hidden;speedToggle.setAttribute('aria-expanded',String(!speedOptions.hidden))};
 document.addEventListener('pointerdown',e=>{if(!speedOptions.contains(e.target)&&e.target!==speedToggle){speedOptions.hidden=true;speedToggle.setAttribute('aria-expanded','false')}});
 for(const [id,tip] of Object.entries({play:'Play or pause (Spacebar)',loop:'Enable or disable A–B loop',markIn:'Set the In marker',markOut:'Set the Out marker',speedToggle:'Choose playback speed',back:'Nudge left 5 seconds',forward:'Nudge right 5 seconds',clear:'Clear loop markers',helpButton:'Click for player help'})){const el=$(id);if(el)el.title=tip}
