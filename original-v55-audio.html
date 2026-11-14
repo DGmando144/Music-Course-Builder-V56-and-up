@@ -998,6 +998,34 @@ html body .pip-audio-player .media-tools.mcb-audio-transport .wave-wrap {
  width:100%!important;min-width:0!important;max-width:100%!important;
  box-sizing:border-box!important;
 }
+
+/* V56.5.48 — MP3 Float: align Help and numeric timecode with transport. */
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip {
+ display:flex!important;flex-flow:row nowrap!important;align-items:flex-start!important;
+ justify-content:flex-start!important;align-content:flex-start!important;
+ width:max-content!important;min-width:100%!important;max-width:none!important;
+ gap:3px!important;overflow:visible!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip > .mcb-audio-tail {
+ display:flex!important;flex-flow:row nowrap!important;align-items:flex-start!important;
+ justify-content:flex-start!important;align-self:flex-start!important;
+ flex:0 0 auto!important;width:auto!important;min-width:0!important;
+ max-width:none!important;gap:6px!important;margin:0!important;padding:0!important;
+ box-sizing:border-box!important;overflow:visible!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scroll {
+ overflow-x:auto!important;overflow-y:hidden!important;scrollbar-width:none!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-scroll::-webkit-scrollbar {
+ display:none!important;
+}
+html body .pip-audio-player .media-tools.mcb-audio-transport .media-control-strip .mcb-audio-tail #mediaTimecode {
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:132px!important;min-width:132px!important;max-width:132px!important;
+ height:29px!important;min-height:29px!important;max-height:29px!important;
+ flex:0 0 132px!important;margin:0!important;padding:0 5px!important;
+ font-size:13px!important;line-height:20px!important;white-space:nowrap!important;
+}
 </style>
 <style id="mcb-v56528-controls">
 /* In floating MP3, the browser X is the only window-close control. */
